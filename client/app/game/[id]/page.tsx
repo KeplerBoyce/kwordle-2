@@ -178,7 +178,12 @@ export default function Home() {
             </div>
           </div>
 
-          <Keyboard colors={keyColors} keyCallback={addChar} />
+          <Keyboard
+            colors={keyColors}
+            keyCallback={addChar}
+            enterCallback={handleEnter}
+            backspaceCallback={handleBackspace}
+          />
         </div>
       </div>
     </MainCenter>
