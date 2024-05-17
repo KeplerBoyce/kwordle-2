@@ -9,9 +9,8 @@ export default function WordleBoard(props: {
   row: number,
   col: number,
   grid: WordleLetter[],
-  setColor: (char: Char, color: WordleColor) => void,
 }) {
-  const { word, row, col, grid, setColor } = props;
+  const { row, grid } = props;
 
   return (
     <div className="flex flex-col gap-24">

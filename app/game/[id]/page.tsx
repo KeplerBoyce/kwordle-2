@@ -1,11 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import WordleBoard from "../WordleBoard";
+import WordleBoard from "./WordleBoard";
 import MainCenter from "@/app/MainCenter";
 import { Char, WordleColor, WordleLetter, defaultColors, genAnswer, guessIsValid, keys } from "@/util/types";
-import Keyboard from "../Keyboard";
+import Keyboard from "./Keyboard";
 import { useKeyPressEvent } from "react-use";
+import { Button } from "@nextui-org/react";
+import Link from "next/link";
 
 
 export default function Home() {
@@ -120,15 +122,38 @@ export default function Home() {
 
   return (
     <MainCenter>
-      <div className="py-12 h-screen flex flex-col items-center justify-evenly">
-        <WordleBoard
-          word={word}
-          row={row}
-          col={col}
-          grid={grid}
-          setColor={setColor}
-        />
-        <Keyboard colors={keyColors} keyCallback={addChar} />
+      <div className="h-screen flex flex-col items-center">
+        <div className="p-4 flex w-full border-b-3 border-slate-200 items-center justify-between">
+
+          <div className="w-1/4">
+            <Link href="/">
+              <Button className="bg-transparent text-slate-500 flex gap-2 items-center">
+                <div className="text-3xl">
+                  ←
+                </div>
+                <p className="text-xl font-bold">
+                  Home
+                </p>
+              </Button>
+            </Link>
+          </div>
+
+          <p className="text-3xl font-bold">
+            Kwordle
+          </p>
+
+          <div className="w-1/4"></div>
+        </div>
+
+        <div className="h-full py-12 flex flex-col items-center justify-evenly">
+          <WordleBoard
+            word={word}
+            row={row}
+            col={col}
+            grid={grid}
+          />
+          <Keyboard colors={keyColors} keyCallback={addChar} />
+        </div>
       </div>
     </MainCenter>
   );
