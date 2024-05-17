@@ -15,18 +15,18 @@ export default function WordleBoard(props: {
   return (
     <div className="flex flex-col gap-24">
       <div className="flex flex-col gap-1.5">
-        {[...Array(6)].map((_, r) => {
-          return <div key={r} className="flex gap-1.5">
-            {[...Array(5)].map((_, c) => {
-              return <LetterBox
+        {[...Array(6)].map((_, r) =>
+          <div key={r} className="flex gap-1.5">
+            {[...Array(5)].map((_, c) =>
+              <LetterBox
                 key={c}
                 active={r === row}
                 char={grid[r * 5 + c]?.char}
                 color={grid[r * 5 + c]?.color}
               />
-            })}
+            )}
           </div>
-        })}
+        )}
       </div>
     </div>
   );

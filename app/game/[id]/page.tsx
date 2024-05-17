@@ -8,6 +8,7 @@ import Keyboard from "./Keyboard";
 import { useKeyPressEvent } from "react-use";
 import { Button } from "@nextui-org/react";
 import Link from "next/link";
+import SmallWordleBoard from "./SmallWordleBoard";
 
 
 export default function Home() {
@@ -17,6 +18,7 @@ export default function Home() {
   const [grid, setGrid] = useState<Array<WordleLetter>>([]);
   const [keyColors, setKeyColors] = useState(defaultColors);
   const [solved, setSolved] = useState(false);
+  const [players, setPlayers] = useState([]);
 
   useEffect(() => {
     setWord(genAnswer());
@@ -142,16 +144,40 @@ export default function Home() {
             Kwordle
           </p>
 
-          <div className="w-1/4"></div>
+          <div className="w-1/4" />
         </div>
 
         <div className="h-full py-12 flex flex-col items-center justify-evenly">
-          <WordleBoard
-            word={word}
-            row={row}
-            col={col}
-            grid={grid}
-          />
+          <div className="flex gap-8 items-center">
+
+            <div className="grid grid-cols-2 gap-4">
+              {[...Array(4)].map((_, i) =>
+                <SmallWordleBoard
+                  active={i + 1 < players.length}
+                  colors={[]}
+                  username="player 2"
+                />
+              )}
+            </div>
+
+            <WordleBoard
+              word={word}
+              row={row}
+              col={col}
+              grid={grid}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              {[...Array(4)].map((_, i) =>
+                <SmallWordleBoard
+                  active={i + 5 < players.length}
+                  colors={[]}
+                  username="player 2"
+                />
+              )}
+            </div>
+          </div>
+
           <Keyboard colors={keyColors} keyCallback={addChar} />
         </div>
       </div>
