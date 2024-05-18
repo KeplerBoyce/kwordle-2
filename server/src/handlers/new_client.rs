@@ -6,8 +6,7 @@ use crate::sse::Broadcaster;
 use crate::types::ServerErr;
 
 
-// route for fetching user event stream
-#[get("/api/events")]
+#[get("/api/game/events")]
 pub async fn get(
     broadcaster: Data<Mutex<Broadcaster>>,
 ) -> Result<HttpResponse, ServerErr> {

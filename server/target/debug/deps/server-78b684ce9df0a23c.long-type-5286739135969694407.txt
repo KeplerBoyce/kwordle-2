@@ -1,0 +1,1 @@
+fn(actix_web::web::Data<parking_lot::lock_api::Mutex<parking_lot::RawMutex, Database>>) -> impl futures::Future<Output = Result<HttpResponse, ServerErr>> {handlers::create_game::get}

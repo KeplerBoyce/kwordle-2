@@ -2,20 +2,16 @@ use parking_lot::Mutex;
 use actix_web::web::Data;
 use actix_web::{HttpResponse, get};
 
-use crate::sse::Broadcaster;
+use crate::db::Database;
 use crate::types::ServerErr;
 
 
-// route for fetching user event stream
-#[get("/api/events")]
+#[get("/api/game/new")]
 pub async fn get(
-    broadcaster: Data<Mutex<Broadcaster>>,
+    db: Data<Mutex<Database>>,
 ) -> Result<HttpResponse, ServerErr> {
 
-    let (rx, _) = broadcaster.lock().new_user_client("test".to_string());
+    let game_id = db.lock().create_game();
 
-    Ok(HttpResponse::Ok()
-        .append_header(("content-type", "text/event-stream"))
-        .streaming(rx)
-    )
+    Ok(HttpResponse::Ok().json(game_id))
 }
