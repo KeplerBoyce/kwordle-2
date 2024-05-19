@@ -32,12 +32,16 @@ export type Player = {
   score: 0,
 };
 
-export type ChangePlayersEvent = {
+type ChangePlayersEvent = {
   typ: "CHANGE_PLAYERS",
   players: Player[],
 };
 
-export type Event = ChangePlayersEvent;
+type StartGameEvent = {
+  typ: "START_GAME",
+}
+
+export type Event = ChangePlayersEvent | StartGameEvent;
 
 const answerList = new Set(`aback
 abase

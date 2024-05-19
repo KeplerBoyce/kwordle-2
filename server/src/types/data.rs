@@ -3,12 +3,16 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 pub struct Game {
+    pub started: bool,
+    pub host_id: String,
     pub players: HashMap<String, Player>
 }
 
 impl Game {
-    pub fn new() -> Self {
+    pub fn new(host_id: String) -> Self {
         Self {
+            started: false,
+            host_id,
             players: HashMap::new(),
         }
     }

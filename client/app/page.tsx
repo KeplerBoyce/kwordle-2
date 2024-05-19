@@ -16,11 +16,32 @@ export default function Home() {
 
   const createGame = async () => {
     setCreateLoading(true);
+
+    const hostId = getUserID();
+    const headers: HeadersInit = new Headers();
+    headers.set("Content-Type", "application/json");
+
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/game/new`, {
       method: "POST",
+      headers,
+      body: JSON.stringify({
+        hostId,
+      }),
     });
     const data = await res.json();
     router.push(`/lobby/${data.id}`);
+  }
+
+  const getUserID = () => {
+    let userId = localStorage.getItem("userId");
+    if (!userId) {
+      userId = "";
+      for (let i = 0; i < 32; i++) {
+        userId += Math.floor(Math.random() * 10);
+      }
+      localStorage.setItem("userId", userId);
+    }
+    return userId;
   }
 
   const joinGame = () => {

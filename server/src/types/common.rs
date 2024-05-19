@@ -7,6 +7,7 @@ use actix_web::{HttpResponse, ResponseError};
 pub enum ServerErr {
     Internal(String),
     BadReq(String),
+    UnAuth(String),
     Forbidden(String),
     NotFound(String),
 }
@@ -16,6 +17,7 @@ impl Display for ServerErr {
         write!(f, "{}", match self {
             ServerErr::Internal(x) => x,
             ServerErr::BadReq(x) => x,
+            ServerErr::UnAuth(x) => x,
             ServerErr::Forbidden(x) => x,
             ServerErr::NotFound(x) => x,
         })
@@ -29,6 +31,7 @@ impl ResponseError for ServerErr {
         match *self {
             ServerErr::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
             ServerErr::BadReq(_) => StatusCode::BAD_REQUEST,
+            ServerErr::UnAuth(_) => StatusCode::UNAUTHORIZED,
             ServerErr::Forbidden(_) => StatusCode::FORBIDDEN,
             ServerErr::NotFound(_) => StatusCode::NOT_FOUND,
         }

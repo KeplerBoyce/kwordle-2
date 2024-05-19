@@ -21,7 +21,7 @@ impl Database {
         Data::new(Mutex::new(Database::new()))
     }
 
-    pub fn create_game(&mut self) -> String {
+    pub fn create_game(&mut self, host_id: String) -> String {
         let alphabet: [char; 36] = [
             '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
@@ -34,8 +34,22 @@ impl Database {
                 break;
             }
         }
-        self.games.insert(id.clone(), Game::new());
+        self.games.insert(id.clone(), Game::new(host_id));
         id
+    }
+
+    pub fn get_game_host_id(&self, game_id: String) -> Option<String> {
+        if let Some(game) = self.games.get(&game_id) {
+            Some(game.host_id.clone())
+        } else {
+            None
+        }
+    }
+
+    pub fn start_game(&mut self, game_id: String) {
+        if let Some(game) = self.games.get_mut(&game_id) {
+            game.started = true;
+        }
     }
 
     pub fn add_or_update_username(

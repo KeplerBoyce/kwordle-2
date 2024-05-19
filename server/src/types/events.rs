@@ -6,6 +6,7 @@ use super::data::Player;
 pub enum Event {
     GuessEvent(GuessEvent),
     ChangePlayersEvent(ChangePlayersEvent),
+    StartGameEvent(StartGameEvent),
 }
 
 impl Event {
@@ -13,6 +14,7 @@ impl Event {
         match self {
             Event::GuessEvent(e) => serde_json::to_string(e).unwrap(),
             Event::ChangePlayersEvent(e) => serde_json::to_string(e).unwrap(),
+            Event::StartGameEvent(e) => serde_json::to_string(e).unwrap(),
         }
     }
 }
@@ -22,6 +24,7 @@ impl Event {
 pub enum EventType {
     Guess,
     ChangePlayers,
+    StartGame,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -44,6 +47,20 @@ impl ChangePlayersEvent {
         Self {
             typ: EventType::ChangePlayers,
             players,
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StartGameEvent {
+    pub typ: EventType,
+}
+
+impl StartGameEvent {
+    pub fn create() -> Self {
+        Self {
+            typ: EventType::StartGame,
         }
     }
 }

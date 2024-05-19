@@ -62,6 +62,9 @@ export default function Home({ params }: {
         case "CHANGE_PLAYERS":
           setPlayers(event.players.map(p => p.username));
           break;
+        case "START_GAME":
+          redirectToGame();
+          break;
       }
     }
   }
@@ -117,7 +120,22 @@ export default function Home({ params }: {
     setDBUsername(username.trim());
   }
 
-  const startGame = () => {
+  const startGame = async () => {
+    setStartLoading(true);
+    const hostId = getUserID();
+    const headers: HeadersInit = new Headers();
+    headers.set("Content-Type", "application/json");
+
+    await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/game/${id}/start`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        hostId,
+      })
+    });
+  }
+
+  const redirectToGame = () => {
     setStartLoading(true);
     router.push(`/game/${id}`);
   }
@@ -217,7 +235,7 @@ export default function Home({ params }: {
             onClick={startGame}
             className="w-full uppercase font-semibold text-2xl h-16"
           >
-            Start
+            {startLoading ? "Starting" : "Start"}
           </Button>
         </div>
       </RoundedBox>

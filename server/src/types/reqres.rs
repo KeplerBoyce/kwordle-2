@@ -20,6 +20,18 @@ pub struct SetUsernameReq {
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CreateGameReq {
+    pub host_id: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StartGameReq {
+    pub host_id: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NewGameRes {
     pub id: String,
 }
