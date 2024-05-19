@@ -26,11 +26,18 @@ export type WordleLetter = {
   color: WordleColor,
 };
 
-export type Opponent = {
+export type Player = {
   username: string,
   guessColors: WordleColor[],
   score: 0,
 };
+
+export type ChangePlayersEvent = {
+  typ: "CHANGE_PLAYERS",
+  players: Player[],
+};
+
+export type Event = ChangePlayersEvent;
 
 const answerList = new Set(`aback
 abase

@@ -14,16 +14,16 @@ export default function Home() {
   const [createLoading, setCreateLoading] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
 
-  const createLobby = async () => {
+  const createGame = async () => {
     setCreateLoading(true);
-    const res = await fetch("/api/game/new", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/game/new`, {
       method: "POST",
     });
     const data = await res.json();
     router.push(`/lobby/${data.id}`);
   }
 
-  const joinLobby = () => {
+  const joinGame = () => {
     setJoinLoading(true);
     if (gameId.length !== 6) {
       return;
@@ -49,7 +49,7 @@ export default function Home() {
               radius="lg"
               color="success"
               isLoading={createLoading}
-              onClick={createLobby}
+              onClick={createGame}
               className="w-full uppercase font-bold"
             >
               {createLoading ? "" : "Create game"}
@@ -82,7 +82,7 @@ export default function Home() {
               }}
               onKeyDown={e => {
                 if (e.key === "Enter") {
-                  joinLobby();
+                  joinGame();
                 }
               }}
             />
@@ -92,7 +92,7 @@ export default function Home() {
               color="primary"
               disabled={gameId.length !== 6}
               isLoading={joinLoading}
-              onClick={joinLobby}
+              onClick={joinGame}
               className={"w-full uppercase font-bold" + (gameId.length !== 6 ? " bg-slate-400" : "")}
             >
               {joinLoading ? "" : "Join game"}

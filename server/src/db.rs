@@ -43,7 +43,7 @@ impl Database {
         game_id: String,
         user_id: String,
         username: String,
-    ) -> Vec<String> {
+    ) {
         if let Some(game) = self.games.get_mut(&game_id) {
             match game.players.entry(user_id) {
                 Entry::Occupied(mut x) => {
@@ -54,16 +54,23 @@ impl Database {
                 },
             }
         }
-        self.get_game_usernames(game_id)
     }
 
-    pub fn get_game_usernames(&self, game_id: String) -> Vec<String> {
-        let mut usernames = Vec::new();
+    pub fn get_game_user_ids(&self, game_id: String) -> Vec<String> {
+        let mut user_ids = Vec::new();
         if let Some(game) = self.games.get(&game_id) {
-            for (_, player) in &game.players {
-                usernames.push(player.username.clone());
+            for (user_id, _) in &game.players {
+                user_ids.push(user_id.clone());
             }
         }
-        usernames
+        user_ids
+    }
+
+    pub fn get_game_players(&self, game_id: String) -> Vec<Player> {
+        if let Some(game) = self.games.get(&game_id) {
+            game.players.iter().map(|(_, p)| p.clone()).collect()
+        } else {
+            Vec::new()
+        }
     }
 }

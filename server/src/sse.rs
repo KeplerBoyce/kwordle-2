@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 use tokio::time::{interval_at, Instant};
 
+use crate::db::Database;
 use crate::types::common::ServerErr;
 use crate::types::events::Event;
 
@@ -27,7 +28,7 @@ impl Stream for Client {
 }
 
 pub struct Broadcaster {
-    clients: HashMap<String, Vec<Sender<Bytes>>>,
+    clients: HashMap<String, Sender<Bytes>>,
 }
 
 impl Broadcaster {
@@ -56,18 +57,14 @@ impl Broadcaster {
     }
 
     fn remove_stale_clients(&mut self) {
-        for vec in self.clients.values_mut() {
-            vec.retain(|x| x.clone().try_send(Bytes::from("event: internal_status\ndata: ping\n\n")).is_ok());
-        }
-        self.clients.retain(|_, v| v.len() != 0);
+        self.clients.retain(|_, x| x.clone().try_send(
+            Bytes::from("event: internal_status\ndata: ping\n\n")).is_ok());
     }
 
-    pub fn new_user_client(&mut self, username: String) -> (Client, Sender<Bytes>) {
+    pub fn new_user_client(&mut self, user_id: String) -> (Client, Sender<Bytes>) {
         let (tx, rx) = channel(100);
 
-        self.clients.entry(username)
-            .and_modify(|v| v.push(tx.clone()))
-            .or_insert(vec![tx.clone()]);
+        self.clients.insert(user_id, tx.clone());
         (Client(rx), tx)
     }
 
@@ -75,5 +72,15 @@ impl Broadcaster {
         let event = Bytes::from(["data: ", &event.to_string(), "\n\n"].concat());
 
         client.try_send(event.clone()).unwrap_or(());
+    }
+
+    pub fn send_game(&self, db: Data<Mutex<Database>>, game_id: String, event: Event) {
+        let event = Bytes::from(["data: ", &event.to_string(), "\n\n"].concat());
+
+        for user_id in db.lock().get_game_user_ids(game_id) {
+            if let Some(x) = self.clients.get(&user_id) {
+                x.try_send(event.clone()).unwrap_or(());
+            }
+        }
     }
 }
