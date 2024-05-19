@@ -26,6 +26,12 @@ export type WordleLetter = {
   color: WordleColor,
 };
 
+export type Opponent = {
+  username: string,
+  guessColors: WordleColor[],
+  score: 0,
+};
+
 const answerList = new Set(`aback
 abase
 abate

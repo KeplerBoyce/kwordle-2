@@ -4,7 +4,6 @@ import { Button } from "@nextui-org/button";
 import MainCenter from "./MainCenter";
 import RoundedBox from "./RoundedBox";
 import { useRouter } from "next/navigation";
-import { Input } from "@nextui-org/react";
 import { useState } from "react";
 
 
@@ -12,20 +11,24 @@ export default function Home() {
   const router = useRouter();
 
   const [gameId, setGameId] = useState("");
+  const [createLoading, setCreateLoading] = useState(false);
+  const [joinLoading, setJoinLoading] = useState(false);
 
-  const createGame = async () => {
+  const createLobby = async () => {
+    setCreateLoading(true);
     const res = await fetch("/api/game/new", {
       method: "POST",
     });
     const data = await res.json();
-    router.push(`/game/${data.id}`);
+    router.push(`/lobby/${data.id}`);
   }
 
-  const joinGame = () => {
+  const joinLobby = () => {
+    setJoinLoading(true);
     if (gameId.length !== 6) {
       return;
     }
-    router.push(`/game/${gameId}`);
+    router.push(`/lobby/${gameId.toUpperCase()}`);
   }
 
   return (
@@ -44,11 +47,12 @@ export default function Home() {
             <Button
               size="lg"
               radius="lg"
-              color="primary"
-              onClick={createGame}
-              className="w-full"
+              color="success"
+              isLoading={createLoading}
+              onClick={createLobby}
+              className="w-full uppercase font-bold"
             >
-              Create game
+              {createLoading ? "" : "Create game"}
             </Button>
           </div>
 
@@ -71,10 +75,14 @@ export default function Home() {
                 font-mono uppercase border-2 border-slate-300 focus:outline-none"
               placeholder="123XYZ"
               value={gameId}
-              onChange={e => setGameId(e.target.value)}
+              onChange={e => {
+                if (e.target.value.match(/^$|^[a-zA-Z0-9]+$/)) {
+                  setGameId(e.target.value);
+                }
+              }}
               onKeyDown={e => {
                 if (e.key === "Enter") {
-                  joinGame();
+                  joinLobby();
                 }
               }}
             />
@@ -83,10 +91,11 @@ export default function Home() {
               radius="lg"
               color="primary"
               disabled={gameId.length !== 6}
-              onClick={joinGame}
-              className={"w-full" + (gameId.length !== 6 ? " bg-slate-400" : "")}
+              isLoading={joinLoading}
+              onClick={joinLobby}
+              className={"w-full uppercase font-bold" + (gameId.length !== 6 ? " bg-slate-400" : "")}
             >
-              Join game
+              {joinLoading ? "" : "Join game"}
             </Button>
           </div>
         </div>
