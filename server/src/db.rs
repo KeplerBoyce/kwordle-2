@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{hash_map::Entry, HashMap};
 use actix_web::web::Data;
 use parking_lot::Mutex;
 use nanoid::nanoid;
@@ -34,15 +34,36 @@ impl Database {
                 break;
             }
         }
-        println!("created game with id {}", id.clone());
         self.games.insert(id.clone(), Game::new());
         id
     }
 
-    pub fn add_player_to_game(&mut self, game_id: String, username: String) {
-        println!("added player {} to game with id {}", username, game_id);
-        if let Some(x) = self.games.get_mut(&game_id) {
-            x.players.push(Player::create(username));
+    pub fn add_or_update_username(
+        &mut self,
+        game_id: String,
+        user_id: String,
+        username: String,
+    ) -> Vec<String> {
+        if let Some(game) = self.games.get_mut(&game_id) {
+            match game.players.entry(user_id) {
+                Entry::Occupied(mut x) => {
+                    x.get_mut().username = username;
+                },
+                Entry::Vacant(x) => {
+                    x.insert(Player::create(username));
+                },
+            }
         }
+        self.get_game_usernames(game_id)
+    }
+
+    pub fn get_game_usernames(&self, game_id: String) -> Vec<String> {
+        let mut usernames = Vec::new();
+        if let Some(game) = self.games.get(&game_id) {
+            for (_, player) in &game.players {
+                usernames.push(player.username.clone());
+            }
+        }
+        usernames
     }
 }

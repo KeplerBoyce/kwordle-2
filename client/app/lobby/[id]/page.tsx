@@ -23,6 +23,7 @@ export default function Home({ params }: {
     const name = genRandomUsername();
     setRandomName(name);
     setUsername(name);
+    setDBUsername(name);
   }, []);
 
   useEffect(() => {
@@ -43,15 +44,31 @@ export default function Home({ params }: {
     }, 2000);
   }, [usernameSaved]);
 
-  useEffect(() => {
-    if (!usernameLoading) {
-      return;
+  const setDBUsername = async (username: string) => {
+    let userId = localStorage.getItem("userId");
+    if (!userId) {
+      userId = "";
+      for (let i = 0; i < 32; i++) {
+        userId += Math.floor(Math.random() * 10);
+      }
+      localStorage.setItem("userId", userId);
     }
-    setTimeout(() => {
-      setUsernameLoading(false);
-      setUsernameSaved(true);
-    }, 1000);
-  }, [usernameLoading]);
+    const headers: HeadersInit = new Headers();
+    headers.set("Content-Type", "application/json");
+
+    const res = await fetch(`/api/game/${id}/user`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        userId,
+        username,
+      }),
+    });
+    const data = await res.json();
+    setUsernameLoading(false);
+    setUsernameSaved(true);
+    updateUsernames(data);
+  }
 
   const genRandomUsername = () => {
     return "user" + Math.floor(Math.random() * 10)
@@ -69,6 +86,11 @@ export default function Home({ params }: {
   const saveUsername = () => {
     setUsernameLoading(true);
     setUsername(username.trim());
+    setDBUsername(username.trim());
+  }
+
+  const updateUsernames = (usernames: string[]) => {
+    console.log(usernames);
   }
 
   const createGame = () => {
