@@ -15,9 +15,9 @@ export default function SmallWordleBoard(props: {
         + (active ? "" : " bg-slate-200")}>
           
         {[...Array(6)].map((_, r) =>
-          <div className="flex gap-0.5">
+          <div key={r} className="flex gap-0.5">
             {[...Array(5)].map((_, c) =>
-              <ColorBox color={colors[r * 5 + c]} />
+              <ColorBox key={c} color={colors[r * 5 + c]} />
             )}
           </div>
         )}

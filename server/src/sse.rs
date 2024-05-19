@@ -8,7 +8,8 @@ use std::collections::HashMap;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 use tokio::time::{interval_at, Instant};
 
-use crate::types::{Event, ServerErr};
+use crate::types::common::ServerErr;
+use crate::types::events::Event;
 
 
 pub struct Client(Receiver<Bytes>);

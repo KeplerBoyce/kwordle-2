@@ -3,7 +3,7 @@ use actix_web::web::Data;
 use actix_web::{HttpResponse, get};
 
 use crate::sse::Broadcaster;
-use crate::types::ServerErr;
+use crate::types::common::ServerErr;
 
 
 #[get("/api/game/events")]

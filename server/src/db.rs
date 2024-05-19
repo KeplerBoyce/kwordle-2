@@ -3,7 +3,7 @@ use actix_web::web::Data;
 use parking_lot::Mutex;
 use nanoid::nanoid;
 
-use crate::types::{Game, Player};
+use crate::types::data::{Game, Player};
 
 
 pub struct Database {
@@ -21,7 +21,7 @@ impl Database {
         Data::new(Mutex::new(Database::new()))
     }
 
-    pub fn create_game(&mut self) {
+    pub fn create_game(&mut self) -> String {
         let alphabet: [char; 36] = [
             '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
@@ -35,7 +35,8 @@ impl Database {
             }
         }
         println!("created game with id {}", id.clone());
-        self.games.insert(id, Game::new());
+        self.games.insert(id.clone(), Game::new());
+        id
     }
 
     pub fn add_player_to_game(&mut self, game_id: String, username: String) {

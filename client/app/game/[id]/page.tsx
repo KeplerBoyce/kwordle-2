@@ -153,6 +153,7 @@ export default function Home() {
             <div className="grid grid-cols-2 gap-4">
               {[...Array(4)].map((_, i) =>
                 <SmallWordleBoard
+                  key={i}
                   active={i + 1 < players.length}
                   colors={[]}
                   username="player 2"
@@ -170,6 +171,7 @@ export default function Home() {
             <div className="grid grid-cols-2 gap-4">
               {[...Array(4)].map((_, i) =>
                 <SmallWordleBoard
+                  key={i}
                   active={i + 5 < players.length}
                   colors={[]}
                   username="player 2"
