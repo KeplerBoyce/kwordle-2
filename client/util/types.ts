@@ -68,9 +68,11 @@ export const guessesToColors = (guesses: string[], word: string) => {
 }
 
 export type Opponent = {
+  userId: string,
   username: string,
   guessColors: WordleColor[],
   score: number,
+  typing: boolean[],
 }
 
 export type Player = {
@@ -79,6 +81,7 @@ export type Player = {
   guesses: string[],
   score: number,
   ready: boolean,
+  typing: boolean[],
 };
 
 type ChangePlayersEvent = {
@@ -95,7 +98,20 @@ type NewWordEvent = {
   word: string,
 };
 
-export type Event = ChangePlayersEvent | StartGameEvent | NewWordEvent;
+type GameFullEvent = {
+  typ: "GAME_FULL",
+  players: Player[],
+  word: string,
+}
+
+type TypingEvent = {
+  typ: "TYPING",
+  userId: string,
+  typing: boolean[],
+}
+
+export type Event = ChangePlayersEvent | StartGameEvent | NewWordEvent |
+                    GameFullEvent | TypingEvent;
 
 const answerList = new Set(`aback
 abase

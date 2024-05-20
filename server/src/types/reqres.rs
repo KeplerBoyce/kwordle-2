@@ -36,12 +36,10 @@ pub struct GuessReq {
     pub guess: String,
 }
 
-impl GuessReq {
-    pub fn create(guess: String) -> Self {
-        GuessReq {
-            guess,
-        }
-    }
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TypingReq {
+    pub typing: [bool; 5],
 }
 
 #[derive(Deserialize, Serialize)]

@@ -19,6 +19,7 @@ export default function Home({ params }: {
   const { id } = params;
 
   const [word, setWord] = useState("");
+  const [canType, setCanType] = useState(false);
   const [row, setRow] = useState(0);
   const [col, setCol] = useState(0);
   const [grid, setGrid] = useState<Array<WordleLetter>>([]);
@@ -30,24 +31,76 @@ export default function Home({ params }: {
     const userId = getUserID();
     const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
     let currWord = word;
+    let currOpponents = opponents;
 
     eventSource.onmessage = (m) => {
       const event: Event = JSON.parse(m.data);
       switch (event.typ) {
         case "NEW_WORD":
-          setWord(event.word);
           currWord = event.word;
+          setWord(currWord);
           break;
+
         case "CHANGE_PLAYERS":
-          setOpponents(event.players
+          currOpponents = event.players
             .filter(p => p.userId !== userId)
             .map(p => {
               return {
+                userId: p.userId,
                 username: p.username,
                 guessColors: guessesToColors(p.guesses, currWord),
                 score: p.score,
+                typing: p.typing,
               };
-            }));
+            });
+          setOpponents([...currOpponents]);
+          break;
+
+        case "TYPING":
+          const opponentIdx = currOpponents.findIndex(p => p.userId === event.userId);
+          if (opponentIdx >= 0) {
+            currOpponents[opponentIdx].typing = event.typing;
+            setOpponents([...currOpponents]);
+          }
+          break;
+
+        case "GAME_FULL":
+          currWord = event.word;
+          setWord(currWord);
+
+          currOpponents = event.players
+            .filter(p => p.userId !== userId)
+            .map(p => {
+              return {
+                userId: p.userId,
+                username: p.username,
+                guessColors: guessesToColors(p.guesses, currWord),
+                score: p.score,
+                typing: p.typing,
+              };
+            });
+          setOpponents(currOpponents);
+
+          const player = event.players.find(p => p.userId === userId);
+          if (player) {
+            const colors = guessesToColors(player.guesses, currWord);
+            for (let r = 0; r < player.guesses.length; r++) {
+              for (let c = 0; c < 5; c++) {
+                grid.push({
+                  char: player.guesses[r].charAt(c) as Char,
+                  color: colors[r * 5 + c],
+                })
+                updateCharColor(player.guesses[r].charAt(c) as Char, colors[r * 5 + c]);
+              }
+            }
+            if (player.guesses.length > 0 &&
+                player.guesses[player.guesses.length - 1] === currWord) {
+              setSolved(true);
+            } else {
+              setRow(player.guesses.length);
+            }
+          }
+          setCanType(true);
           break;
       }
     };
@@ -85,57 +138,50 @@ export default function Home({ params }: {
     });
   }
 
+  const sendTypingReq = async (typing: boolean[]) => {
+    const userId = getUserID();
+    const headers: HeadersInit = new Headers();
+    headers.set("Content-Type", "application/json");
+
+    await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/game/${id}/user/${userId}/typing`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        typing,
+      }),
+    });
+  }
+
   const guessWord = (guess: string) => {
     sendGuessReq(guess);
-
-    const numLeft: {
-      [char: string]: number
-    } = {};
-    
-    word.split('').forEach(c => {
-      if (c in numLeft) {
-        numLeft[c]++;
-      } else {
-        numLeft[c] = 1;
-      }
-    });
-
-    guess.split('').forEach((c, i) => {
-      if (c === word.charAt(i)) {
-        numLeft[c]--;
-        grid[row * 5 + i].color = "green";
-        setColor(c as Char, "green");
-      }
-    })
-
+    const colors = guessesToColors([guess], word);
+    for (let c = 0; c < 5; c++) {
+      grid[row * 5 + c].color = colors[c];
+      updateCharColor(grid[row * 5 + c].char, colors[c]);
+    }
+    setGrid([...grid]);
     if (guess === word) {
       setSolved(true);
-      return;
+    } else {
+      setRow(row + 1);
+      setCol(0);
     }
-
-    guess.split('').forEach((c, i) => {
-      if (grid[row * 5 + i].color === "green") {
-        return;
-      }
-      if (c in numLeft && numLeft[c] > 0) {
-        numLeft[c]--;
-        grid[row * 5 + i].color = "yellow";
-        setColor(c as Char, "yellow");
-      } else {
-        grid[row * 5 + i].color = "gray";
-        setColor(c as Char, "gray");
-      }
-    })
-
-    setGrid([...grid]);
-    setRow(row + 1);
-    setCol(0);
   }
 
   const addChar = (char: Char) => {
-    if (col > 4) {
+    if (col > 4 || solved || !canType) {
       return;
     }
+
+    const typing = [];
+    for (let i = 0; i <= col; i++) {
+      typing.push(true);
+    }
+    for (let i = col + 1; i < 5; i++) {
+      typing.push(false);
+    }
+    sendTypingReq(typing);
+
     setGrid([...grid, {
       char: char,
       color: "white",
@@ -147,12 +193,23 @@ export default function Home({ params }: {
     if (col <= 0) {
       return;
     }
+
+    const typing = [];
+    for (let i = 0; i < col - 1; i++) {
+      typing.push(true);
+    }
+    for (let i = col - 1; i < 5; i++) {
+      typing.push(false);
+    }
+    sendTypingReq(typing);
+
     grid.splice(grid.length - 1, 1);
     setGrid([...grid])
     setCol(col - 1);
   }
 
   const handleEnter = async () => {
+    sendTypingReq([false, false, false, false, false]);
     if (col < 5) {
       clearRow();
       return;
@@ -169,8 +226,14 @@ export default function Home({ params }: {
     }
   }
 
-  const setColor = (char: Char, color: WordleColor) => {
-    keyColors[char] = color;
+  const updateCharColor = (char: Char, color: WordleColor) => {
+    if (keyColors[char] === "white") {
+      keyColors[char] = color;
+    } else if (keyColors[char] === "gray") {
+      return;
+    } else if (keyColors[char] === "yellow" && color === "green") {
+      keyColors[char] = "green";
+    }
     setKeyColors({...keyColors});
   }
 
@@ -215,6 +278,8 @@ export default function Home({ params }: {
                   active={i < opponents.length}
                   colors={i < opponents.length ? opponents[i].guessColors : []}
                   username={i < opponents.length ? opponents[i].username : ""}
+                  score={i < opponents.length ? opponents[i].score : 0}
+                  typing={i < opponents.length ? opponents[i].typing : []}
                 />
               )}
             </div>
@@ -233,6 +298,8 @@ export default function Home({ params }: {
                   active={i + 4 < opponents.length}
                   colors={i + 4 < opponents.length ? opponents[i].guessColors : []}
                   username={i + 4 < opponents.length ? opponents[i].username : ""}
+                  score={i + 4 < opponents.length ? opponents[i].score : 0}
+                  typing={i + 4 < opponents.length ? opponents[i].typing : []}
                 />
               )}
             </div>

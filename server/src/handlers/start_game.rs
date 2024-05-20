@@ -26,7 +26,7 @@ pub async fn post(
     }
     db.lock().start_game(game_id.clone());
     let event = Event::StartGameEvent(StartGameEvent::create());
-    broadcaster.lock().send_game(db, game_id, event);
+    broadcaster.lock().send_game(db.clone(), game_id.clone(), event);
 
     Ok(HttpResponse::Ok().json(OK_RES))
 }

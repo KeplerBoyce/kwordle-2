@@ -68,10 +68,12 @@ impl Broadcaster {
         (Client(rx), tx)
     }
 
-    pub fn send_single(&self, client: &Sender<Bytes>, event: Event) {
-        let event = Bytes::from(["data: ", &event.to_string(), "\n\n"].concat());
-
-        client.try_send(event.clone()).unwrap_or(());
+    pub fn send_single(&self, user_id: String, event: Event) {
+        if let Some(client) = self.clients.get(&user_id) {
+            let event = Bytes::from(["data: ", &event.to_string(), "\n\n"].concat());
+    
+            client.try_send(event.clone()).unwrap_or(());
+        }
     }
 
     pub fn send_game(&self, db: Data<Mutex<Database>>, game_id: String, event: Event) {

@@ -3,7 +3,7 @@ use actix_web::web::Data;
 use parking_lot::Mutex;
 use nanoid::nanoid;
 
-use crate::types::data::{Game, Player};
+use crate::types::{data::{Game, Player}, events::GameFullEvent};
 
 
 pub struct Database {
@@ -35,37 +35,23 @@ impl Database {
         }
     }
 
-    pub fn ready_player(&mut self, user_id: String) -> bool {
+    pub fn get_game_full_event(&self, game_id: String) -> Option<GameFullEvent> {
+        if let Some(game) = self.games.get(&game_id) {
+            Some(game.to_game_full_event())
+        } else {
+            None
+        }
+    }
+
+    pub fn get_player_mut(&mut self, user_id: String) -> Option<&mut Player> {
         if let Some(game_id) = self.players.get(&user_id) {
             if let Some(game) = self.games.get_mut(game_id) {
                 if let Some(player) = game.players.get_mut(&user_id) {
-                    player.ready = true;
-                } else {
-                    return false;
-                }
-                for (_, player) in &game.players {
-                    let mut can_start = true;
-                    if !player.ready {
-                        can_start = false;
-                    }
-                    return can_start;
+                    return Some(player);
                 }
             }
         }
-        return false;
-    }
-
-    pub fn add_player_guess(
-        &mut self,
-        game_id: String,
-        user_id: String,
-        guess: String,
-    ) {
-        if let Some(game) = self.games.get_mut(&game_id) {
-            if let Some(player) = game.players.get_mut(&user_id) {
-                player.guesses.push(guess);
-            }
-        }
+        None
     }
 
     pub fn create_game(&mut self, host_id: String) -> String {

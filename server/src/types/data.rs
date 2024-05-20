@@ -1,11 +1,15 @@
 use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
+
+use crate::words::gen_answer;
+use super::events::{EventType, GameFullEvent};
+
 
 pub struct Game {
     pub started: bool,
     pub host_id: String,
-    pub players: HashMap<String, Player>
+    pub players: HashMap<String, Player>,
+    pub word: String,
 }
 
 impl Game {
@@ -14,6 +18,15 @@ impl Game {
             started: false,
             host_id,
             players: HashMap::new(),
+            word: gen_answer(),
+        }
+    }
+
+    pub fn to_game_full_event(&self) -> GameFullEvent {
+        GameFullEvent {
+            typ: EventType::GameFull,
+            players: self.players.iter().map(|(_, p)| p.clone()).collect(),
+            word: self.word.clone(),
         }
     }
 }
@@ -26,6 +39,7 @@ pub struct Player {
     pub guesses: Vec<String>,
     pub score: i32,
     pub ready: bool,
+    pub typing: [bool; 5],
 }
 
 impl Player {
@@ -36,6 +50,7 @@ impl Player {
             guesses: Vec::new(),
             score: 0,
             ready: false,
+            typing: [false; 5],
         }
     }
 }

@@ -9,6 +9,8 @@ pub enum Event {
     ChangePlayersEvent(ChangePlayersEvent),
     StartGameEvent(StartGameEvent),
     NewWordEvent(NewWordEvent),
+    GameFullEvent(GameFullEvent),
+    TypingEvent(TypingEvent),
 }
 
 impl Event {
@@ -17,6 +19,8 @@ impl Event {
             Event::ChangePlayersEvent(e) => serde_json::to_string(e).unwrap(),
             Event::StartGameEvent(e) => serde_json::to_string(e).unwrap(),
             Event::NewWordEvent(e) => serde_json::to_string(e).unwrap(),
+            Event::GameFullEvent(e) => serde_json::to_string(e).unwrap(),
+            Event::TypingEvent(e) => serde_json::to_string(e).unwrap(),
         }
     }
 }
@@ -27,6 +31,8 @@ pub enum EventType {
     ChangePlayers,
     StartGame,
     NewWord,
+    GameFull,
+    Typing,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -71,6 +77,32 @@ impl NewWordEvent {
         Self {
             typ: EventType::NewWord,
             word: gen_answer(),
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GameFullEvent {
+    pub typ: EventType,
+    pub players: Vec<Player>,
+    pub word: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TypingEvent {
+    pub typ: EventType,
+    pub user_id: String,
+    pub typing: [bool; 5],
+}
+
+impl TypingEvent {
+    pub fn create(user_id: String, typing: [bool; 5]) -> Self {
+        Self {
+            typ: EventType::Typing,
+            user_id,
+            typing,
         }
     }
 }

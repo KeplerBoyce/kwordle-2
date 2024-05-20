@@ -5,7 +5,7 @@ use actix_web::{HttpResponse, get};
 use crate::db::Database;
 use crate::sse::Broadcaster;
 use crate::types::common::ServerErr;
-use crate::types::events::{ChangePlayersEvent, Event, NewWordEvent};
+use crate::types::events::Event;
 
 
 #[get("/api/events/{id}")]
@@ -18,15 +18,14 @@ pub async fn get(
     let user_id: String = path.into_inner();
     let (rx, _) = broadcaster.lock().new_user_client(user_id.clone());
 
-    if db.lock().ready_player(user_id.clone()) {
-        let game_id = db.lock().get_player_game_id(user_id);
-        if let Some(id) = game_id {
-            let new_word_event = Event::NewWordEvent(NewWordEvent::create());
-            broadcaster.lock().send_game(db.clone(), id.clone(), new_word_event);
+    if let Some(player) = db.lock().get_player_mut(user_id.clone()) {
+        player.ready = true;
+    }
 
-            let players = db.lock().get_game_players(id.clone());
-            let change_players_event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players));
-            broadcaster.lock().send_game(db, id, change_players_event);
+    let id_option = db.lock().get_player_game_id(user_id.clone());
+    if let Some(game_id) = id_option {
+        if let Some(event) = db.lock().get_game_full_event(game_id) {
+            broadcaster.lock().send_single(user_id, Event::GameFullEvent(event));
         }
     }
 
