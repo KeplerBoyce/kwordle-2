@@ -11,8 +11,8 @@ export default function SmallWordleBoard(props: {
 
   return (
     <div className="flex flex-col gap-1">
-      <div className={"flex flex-col gap-0.5"
-        + (active ? "" : " bg-slate-200")}>
+      <div className={"flex flex-col gap-0.5 "
+        + (active ? "bg-transparent" : "bg-slate-200")}>
           
         {[...Array(6)].map((_, r) =>
           <div key={r} className="flex gap-0.5">

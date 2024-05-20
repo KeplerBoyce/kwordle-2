@@ -6,26 +6,21 @@ use crate::db::Database;
 use crate::sse::Broadcaster;
 use crate::types::common::ServerErr;
 use crate::types::events::{ChangePlayersEvent, Event};
-use crate::types::reqres::{SetUsernameReq, OK_RES};
+use crate::types::reqres::{GuessReq, OK_RES};
 
 
-#[post("/api/game/{game_id}/user")]
+#[post("/api/game/{game_id}/user/{user_id}/guess")]
 pub async fn post(
-    path: Path<String>,
-    data: Json<SetUsernameReq>,
+    path: Path<(String, String)>,
+    data: Json<GuessReq>,
     db: Data<Mutex<Database>>,
     broadcaster: Data<Mutex<Broadcaster>>,
 ) -> Result<HttpResponse, ServerErr> {
 
-    let game_id: String = path.into_inner();
-    let req_data: SetUsernameReq = data.into_inner();
+    let (game_id, user_id): (String, String) = path.into_inner();
+    let req_data: GuessReq = data.into_inner();
 
-    db.lock().add_player(req_data.user_id.clone(), game_id.clone());
-    db.lock().add_or_update_username(
-        game_id.clone(),
-        req_data.user_id,
-        req_data.username,
-    );
+    db.lock().add_player_guess(game_id.clone(), user_id, req_data.guess);
     let players = db.lock().get_game_players(game_id.clone());
     let event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players));
     broadcaster.lock().send_game(db, game_id, event);

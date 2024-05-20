@@ -21,17 +21,21 @@ impl Game {
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Player {
+    pub user_id: String,
     pub username: String,
     pub guesses: Vec<String>,
     pub score: i32,
+    pub ready: bool,
 }
 
 impl Player {
-    pub fn create(username: String) -> Self {
+    pub fn create(user_id: String, username: String) -> Self {
         Self {
+            user_id,
             username,
             guesses: Vec::new(),
             score: 0,
+            ready: false,
         }
     }
 }

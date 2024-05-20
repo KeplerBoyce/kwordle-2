@@ -63,7 +63,7 @@ impl Broadcaster {
 
     pub fn new_user_client(&mut self, user_id: String) -> (Client, Sender<Bytes>) {
         let (tx, rx) = channel(100);
-
+        
         self.clients.insert(user_id, tx.clone());
         (Client(rx), tx)
     }

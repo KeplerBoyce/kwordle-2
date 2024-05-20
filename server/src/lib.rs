@@ -3,3 +3,4 @@ pub mod db;
 pub mod handlers;
 pub mod types;
 pub mod sse;
+pub mod words;

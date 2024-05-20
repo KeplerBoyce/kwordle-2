@@ -7,18 +7,65 @@ use crate::types::data::{Game, Player};
 
 
 pub struct Database {
-    games: HashMap<String, Game>,
+    players: HashMap<String, String>, // Map user_id to game_id
+    games: HashMap<String, Game>, // Map game_id to Game struct
 }
 
 impl Database {
     pub fn new() -> Self {
         Database {
+            players: HashMap::new(),
             games: HashMap::new(),
         }
     }
 
     pub fn create() -> Data<Mutex<Self>> {
         Data::new(Mutex::new(Database::new()))
+    }
+
+    pub fn add_player(&mut self, user_id: String, game_id: String) {
+        self.players.insert(user_id, game_id);
+    }
+
+    pub fn get_player_game_id(&self, user_id: String) -> Option<String> {
+        if let Some(game_id) = self.players.get(&user_id) {
+            Some(game_id.clone())
+        } else {
+            None
+        }
+    }
+
+    pub fn ready_player(&mut self, user_id: String) -> bool {
+        if let Some(game_id) = self.players.get(&user_id) {
+            if let Some(game) = self.games.get_mut(game_id) {
+                if let Some(player) = game.players.get_mut(&user_id) {
+                    player.ready = true;
+                } else {
+                    return false;
+                }
+                for (_, player) in &game.players {
+                    let mut can_start = true;
+                    if !player.ready {
+                        can_start = false;
+                    }
+                    return can_start;
+                }
+            }
+        }
+        return false;
+    }
+
+    pub fn add_player_guess(
+        &mut self,
+        game_id: String,
+        user_id: String,
+        guess: String,
+    ) {
+        if let Some(game) = self.games.get_mut(&game_id) {
+            if let Some(player) = game.players.get_mut(&user_id) {
+                player.guesses.push(guess);
+            }
+        }
     }
 
     pub fn create_game(&mut self, host_id: String) -> String {
@@ -59,12 +106,12 @@ impl Database {
         username: String,
     ) {
         if let Some(game) = self.games.get_mut(&game_id) {
-            match game.players.entry(user_id) {
+            match game.players.entry(user_id.clone()) {
                 Entry::Occupied(mut x) => {
                     x.get_mut().username = username;
                 },
                 Entry::Vacant(x) => {
-                    x.insert(Player::create(username));
+                    x.insert(Player::create(user_id, username));
                 },
             }
         }

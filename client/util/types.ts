@@ -26,10 +26,59 @@ export type WordleLetter = {
   color: WordleColor,
 };
 
-export type Player = {
+export const guessesToColors = (guesses: string[], word: string) => {
+  const colors: WordleColor[] = [];
+  let row = 0;
+  for (const guess of guesses) {
+    colors.push("white", "white", "white", "white", "white");
+
+    const numLeft: {
+      [char: string]: number
+    } = {};
+
+    word.split('').forEach(c => {
+      if (c in numLeft) {
+        numLeft[c]++;
+      } else {
+        numLeft[c] = 1;
+      }
+    });
+
+    guess.split('').forEach((c, i) => {
+      if (c === word.charAt(i)) {
+        numLeft[c]--;
+        colors[row * 5 + i] = "green";
+      }
+    })
+
+    guess.split('').forEach((c, i) => {
+      if (colors[row * 5 + i] === "green") {
+        return;
+      }
+      if (c in numLeft && numLeft[c] > 0) {
+        numLeft[c]--;
+        colors[row * 5 + i] = "yellow";
+      } else {
+        colors[row * 5 + i] = "gray";
+      }
+    })
+    row++;
+  }
+  return colors;
+}
+
+export type Opponent = {
   username: string,
   guessColors: WordleColor[],
-  score: 0,
+  score: number,
+}
+
+export type Player = {
+  userId: string,
+  username: string,
+  guesses: string[],
+  score: number,
+  ready: boolean,
 };
 
 type ChangePlayersEvent = {
@@ -39,9 +88,14 @@ type ChangePlayersEvent = {
 
 type StartGameEvent = {
   typ: "START_GAME",
-}
+};
 
-export type Event = ChangePlayersEvent | StartGameEvent;
+type NewWordEvent = {
+  typ: "NEW_WORD",
+  word: string,
+};
+
+export type Event = ChangePlayersEvent | StartGameEvent | NewWordEvent;
 
 const answerList = new Set(`aback
 abase
@@ -13018,9 +13072,4 @@ zymic`.split('\n'));
 
 export const guessIsValid = (guess: string) => {
   return answerList.has(guess) || guessList.has(guess);
-}
-
-export const genAnswer = () => {
-  let answers = Array.from(answerList);
-  return answers[Math.floor(Math.random() * answers.length)];
 }

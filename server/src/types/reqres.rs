@@ -32,6 +32,20 @@ pub struct StartGameReq {
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct GuessReq {
+    pub guess: String,
+}
+
+impl GuessReq {
+    pub fn create(guess: String) -> Self {
+        GuessReq {
+            guess,
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NewGameRes {
     pub id: String,
 }
@@ -54,6 +68,20 @@ impl GameUsernamesRes {
     pub fn create(usernames: Vec<String>) -> Self {
         GameUsernamesRes {
             usernames,
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IsHostRes {
+    pub is_host: bool,
+}
+
+impl IsHostRes {
+    pub fn create(is_host: bool) -> Self {
+        IsHostRes {
+            is_host,
         }
     }
 }

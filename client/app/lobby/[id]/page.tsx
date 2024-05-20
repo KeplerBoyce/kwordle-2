@@ -25,13 +25,30 @@ export default function Home({ params }: {
   const [usernameSaved, setUsernameSaved] = useState(false);
   const [startLoading, setStartLoading] = useState(false);
   const [firstNameSave, setFirstNameSave] = useState(true);
+  const [isHost, setIsHost] = useState(false);
 
   useEffect(() => {
-    fetchEventStream();
+    fetchIsHost();
     const name = genRandomUsername();
     setRandomName(name);
     setUsername(name);
     setDBUsername(name);
+
+    const userId = getUserID();
+    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
+    
+    eventSource.onmessage = (m) => {
+      const event: Event = JSON.parse(m.data);
+      switch (event.typ) {
+        case "CHANGE_PLAYERS":
+          setPlayers(event.players.map(p => p.username));
+          break;
+        case "START_GAME":
+          redirectToGame();
+          break;
+      }
+    };
+    return () => eventSource.close();
   }, []);
 
   useEffect(() => {
@@ -52,21 +69,11 @@ export default function Home({ params }: {
     }, 2000);
   }, [usernameSaved]);
 
-  const fetchEventStream = async () => {
+  const fetchIsHost = async () => {
     const userId = getUserID();
-    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
-    
-    eventSource.onmessage = (m) => {
-      const event: Event = JSON.parse(m.data);
-      switch (event.typ) {
-        case "CHANGE_PLAYERS":
-          setPlayers(event.players.map(p => p.username));
-          break;
-        case "START_GAME":
-          redirectToGame();
-          break;
-      }
-    }
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/game/${id}/host/${userId}`);
+    const data = await res.json();
+    setIsHost(data.isHost);
   }
 
   const setDBUsername = async (username: string) => {
@@ -231,11 +238,12 @@ export default function Home({ params }: {
             size="lg"
             radius="lg"
             color="success"
+            disabled={!isHost}
             isLoading={startLoading}
             onClick={startGame}
-            className="w-full uppercase font-semibold text-2xl h-16"
+            className={"w-full uppercase font-semibold text-2xl h-16" + (isHost ? "" : " bg-slate-400")}
           >
-            {startLoading ? "Starting" : "Start"}
+            {isHost ? (startLoading ? "Starting" : "Start") : "Waiting for host"}
           </Button>
         </div>
       </RoundedBox>

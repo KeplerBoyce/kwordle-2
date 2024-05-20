@@ -14,7 +14,7 @@ pub async fn post(
 ) -> Result<HttpResponse, ServerErr> {
 
     let req_data = data.into_inner();
-    let game_id = db.lock().create_game(req_data.host_id);
+    let game_id = db.lock().create_game(req_data.host_id.clone());
 
     Ok(HttpResponse::Ok().json(NewGameRes::create(game_id)))
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import WordleBoard from "./WordleBoard";
 import MainCenter from "@/app/MainCenter";
-import { Char, WordleColor, WordleLetter, defaultColors, genAnswer, guessIsValid, keys } from "@/util/types";
+import { Char, Event, Opponent, Player, WordleColor, WordleLetter, defaultColors, guessIsValid, guessesToColors, keys } from "@/util/types";
 import Keyboard from "./Keyboard";
 import { useKeyPressEvent } from "react-use";
 import { Button } from "@nextui-org/react";
@@ -11,25 +11,83 @@ import Link from "next/link";
 import SmallWordleBoard from "./SmallWordleBoard";
 
 
-export default function Home() {
+export default function Home({ params }: {
+  params: {
+    id: string,
+  },
+}) {
+  const { id } = params;
+
   const [word, setWord] = useState("");
   const [row, setRow] = useState(0);
   const [col, setCol] = useState(0);
   const [grid, setGrid] = useState<Array<WordleLetter>>([]);
   const [keyColors, setKeyColors] = useState(defaultColors);
   const [solved, setSolved] = useState(false);
-  const [players, setPlayers] = useState([]);
+  const [opponents, setOpponents] = useState<Array<Opponent>>([]);
 
   useEffect(() => {
-    setWord(genAnswer());
+    const userId = getUserID();
+    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
+    let currWord = word;
+
+    eventSource.onmessage = (m) => {
+      const event: Event = JSON.parse(m.data);
+      switch (event.typ) {
+        case "NEW_WORD":
+          setWord(event.word);
+          currWord = event.word;
+          break;
+        case "CHANGE_PLAYERS":
+          setOpponents(event.players
+            .filter(p => p.userId !== userId)
+            .map(p => {
+              return {
+                username: p.username,
+                guessColors: guessesToColors(p.guesses, currWord),
+                score: p.score,
+              };
+            }));
+          break;
+      }
+    };
+    return () => eventSource.close();
   }, []);
+
+  const getUserID = () => {
+    let userId = localStorage.getItem("userId");
+    if (!userId) {
+      userId = "";
+      for (let i = 0; i < 32; i++) {
+        userId += Math.floor(Math.random() * 10);
+      }
+      localStorage.setItem("userId", userId);
+    }
+    return userId;
+  }
 
   const clearRow = () => {
     grid.splice(row * 5, 5);
     setCol(0);
   }
 
+  const sendGuessReq = async (guess: string) => {
+    const userId = getUserID();
+    const headers: HeadersInit = new Headers();
+    headers.set("Content-Type", "application/json");
+
+    await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/game/${id}/user/${userId}/guess`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        guess,
+      }),
+    });
+  }
+
   const guessWord = (guess: string) => {
+    sendGuessReq(guess);
+
     const numLeft: {
       [char: string]: number
     } = {};
@@ -154,9 +212,9 @@ export default function Home() {
               {[...Array(4)].map((_, i) =>
                 <SmallWordleBoard
                   key={i}
-                  active={i + 1 < players.length}
-                  colors={[]}
-                  username="player 2"
+                  active={i < opponents.length}
+                  colors={i < opponents.length ? opponents[i].guessColors : []}
+                  username={i < opponents.length ? opponents[i].username : ""}
                 />
               )}
             </div>
@@ -172,9 +230,9 @@ export default function Home() {
               {[...Array(4)].map((_, i) =>
                 <SmallWordleBoard
                   key={i}
-                  active={i + 5 < players.length}
-                  colors={[]}
-                  username="player 2"
+                  active={i + 4 < opponents.length}
+                  colors={i + 4 < opponents.length ? opponents[i].guessColors : []}
+                  username={i + 4 < opponents.length ? opponents[i].username : ""}
                 />
               )}
             </div>

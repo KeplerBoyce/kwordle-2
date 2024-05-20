@@ -1153,6 +1153,7 @@ dependencies = [
  "futures",
  "log",
  "nanoid",
+ "once_cell",
  "parking_lot",
  "rand",
  "serde",
