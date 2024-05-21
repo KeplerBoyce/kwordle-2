@@ -9,6 +9,7 @@ import { useKeyPressEvent } from "react-use";
 import { Button } from "@nextui-org/react";
 import Link from "next/link";
 import SmallWordleBoard from "./SmallWordleBoard";
+import Timer from "./Timer";
 
 
 export default function Home({ params }: {
@@ -26,8 +27,12 @@ export default function Home({ params }: {
   const [keyColors, setKeyColors] = useState(defaultColors);
   const [solved, setSolved] = useState(false);
   const [opponents, setOpponents] = useState<Array<Opponent>>([]);
+  const [startTime, setStartTime] = useState(0);
+  const [time, setTime] = useState(60);
 
   useEffect(() => {
+    beginTimer();
+
     const userId = getUserID();
     const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
     let currWord = word;
@@ -106,6 +111,18 @@ export default function Home({ params }: {
     };
     return () => eventSource.close();
   }, []);
+
+  const beginTimer = () => {
+    setStartTime(Date.now);
+  }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newTime = 60 - Math.floor((Date.now() - startTime) / 1000);
+      setTime(newTime)
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startTime]);
 
   const getUserID = () => {
     let userId = localStorage.getItem("userId");
@@ -269,6 +286,9 @@ export default function Home({ params }: {
         </div>
 
         <div className="h-full py-12 flex flex-col items-center justify-evenly">
+
+          <Timer time={time} />
+
           <div className="flex gap-8 items-center">
 
             <div className="grid grid-cols-2 gap-4">
