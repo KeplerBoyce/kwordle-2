@@ -5,8 +5,9 @@ export default function Timer(props: {
   time: number,
   duration: number,
   width: number,
+  textOverride?: string,
 }) {
-  const { time, duration, width } = props;
+  const { time, duration, width, textOverride } = props;
 
   const [leftStyle, setLeftStyle] = useState({
     width: `${width}px`
@@ -26,12 +27,17 @@ export default function Timer(props: {
 
   return (
     <div className="flex flex-col gap-4 items-center">
-      <p className={"text-5xl transition duration-150"
+      {textOverride
+      ? <p className="text-5xl font-semibold">
+        {textOverride}
+      </p>
+      : <p className={"text-5xl transition duration-150"
         + ((time < 10000 && time > 0) ? " text-red-500" : "")
         + (time <= 0 ? " text-3xl font-semibold" : " font-bold font-mono")
       }>
         {time <= 0 ? "Round ended!" : Math.ceil(time / 1000)}
-      </p>
+      </p>}
+
       <div className="flex h-0">
         {time <= 0
           ? <div className="border border-slate-200" style={rightStyle} />

@@ -364,6 +364,10 @@ export default function Home({ params }: {
                 : ((gameState === "PRE_ROUND" || gameState === "ENDED") ? 0 : time)}
               duration={roundTime}
               width={500}
+              textOverride={(gameState === "PRE_ROUND" && round === 0)
+                ? "Get ready!"
+                : (gameState === "ENDED" ? "Game ended!" : undefined)
+              }
             />
             <div className={"flex gap-1 items-center h-8 transition duration-150 font-semibold text-lg "
                 + ((gameState === "PRE_ROUND" && preTime > 0) ? "text-slate-500" : "text-transparent")
