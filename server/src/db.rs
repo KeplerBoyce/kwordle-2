@@ -38,7 +38,8 @@ impl Database {
 
             if let Some(game_id) = game_id_option {
                 let players = self.get_game_players(game_id.clone());
-                let event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players));
+                let state = self.games.get(&game_id).unwrap().state;
+                let event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players, state));
 
                 for player in self.get_game_players(game_id.clone()) {
                     broadcaster.lock().send_single(player.user_id, event.clone());
@@ -152,7 +153,7 @@ impl Database {
         }
         self.games.remove(&game_id);
 
-        debug!("cleared game {} -- {} games and {} players",
+        debug!("cleared game {}; {} games and {} players in total",
             game_id, self.games.len(), self.players.len());
     }
 

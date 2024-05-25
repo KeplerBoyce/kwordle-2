@@ -48,7 +48,8 @@ pub async fn post(
     }
 
     let players = db.lock().get_game_players(game_id.clone());
-    let event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players));
+    let state = db.lock().get_game(game_id.clone()).unwrap().state;
+    let event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players, state));
     broadcaster.lock().send_game(db, game_id, event);
 
     Ok(HttpResponse::Ok().json(OK_RES))

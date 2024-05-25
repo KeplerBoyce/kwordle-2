@@ -92,7 +92,8 @@ impl Broadcaster {
             }
 
             let players = db.lock().get_game_players(game_id.clone());
-            let player_event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players));
+            let state = db.lock().get_game(game_id.clone()).unwrap().state;
+            let player_event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players, state));
             let event = Bytes::from(["data: ", &player_event.to_string(), "\n\n"].concat());
 
             debug!("updating game {} to remove disconnected players", game_id);

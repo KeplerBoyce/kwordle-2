@@ -89,6 +89,7 @@ export type GameState = "PRE_START" | "PRE_ROUND" | "ROUND" | "ENDED";
 type ChangePlayersEvent = {
   typ: "CHANGE_PLAYERS",
   players: Player[],
+  state: GameState,
 };
 
 type StartGameEvent = {

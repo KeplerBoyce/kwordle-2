@@ -27,6 +27,7 @@ export default function Home({ params }: {
   const [startLoading, setStartLoading] = useState(false);
   const [firstNameSave, setFirstNameSave] = useState(true);
   const [isHost, setIsHost] = useState(false);
+  const [canJoin, setCanJoin] = useState(false);
 
   useEffect(() => {
     fetchIsHost();
@@ -39,7 +40,11 @@ export default function Home({ params }: {
       switch (event.typ) {
         case "CHANGE_PLAYERS":
           setPlayers(event.players.map(p => p.username));
+          if (event.state !== "PRE_START") {
+            setCanJoin(true);
+          }
           break;
+
         case "START_GAME":
           redirectToGame();
           break;
@@ -256,12 +261,14 @@ export default function Home({ params }: {
                 size="lg"
                 radius="lg"
                 color="success"
-                disabled={!isHost}
+                disabled={!isHost && !canJoin}
                 isLoading={startLoading}
-                onClick={startGame}
-                className={"w-full uppercase font-semibold text-2xl h-16" + (isHost ? "" : " bg-slate-400")}
+                onClick={canJoin ? redirectToGame : startGame}
+                className={"w-full uppercase font-semibold text-2xl h-16"
+                  + ((isHost || canJoin) ? "" : " bg-slate-400")}
               >
-                {startLoading ? "Starting" : (isHost ? "Start" : "Waiting for host")}
+                {startLoading ? "Starting" : (canJoin ? "Join" :
+                  (isHost ? "Start" : "Waiting for host"))}
               </Button>
             </div>
           </RoundedBox>

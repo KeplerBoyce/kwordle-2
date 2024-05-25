@@ -48,13 +48,15 @@ pub enum EventType {
 pub struct ChangePlayersEvent {
     pub typ: EventType,
     pub players: Vec<Player>,
+    pub state: GameState,
 }
 
 impl ChangePlayersEvent {
-    pub fn create(players: Vec<Player>) -> Self {
+    pub fn create(players: Vec<Player>, state: GameState) -> Self {
         Self {
             typ: EventType::ChangePlayers,
             players,
+            state,
         }
     }
 }

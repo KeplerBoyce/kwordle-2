@@ -87,7 +87,8 @@ impl Hourglass {
                             broadcaster.lock().send_game(db.clone(), game_id.clone(), Event::NewWordEvent(word_event));
 
                             let players = db.lock().get_game_players(game_id.clone());
-                            let player_event = ChangePlayersEvent::create(players);
+                            let state = db.lock().get_game(game_id.clone()).unwrap().state;
+                            let player_event = ChangePlayersEvent::create(players, state);
                             broadcaster.lock().send_game(db.clone(), game_id.clone(), Event::ChangePlayersEvent(player_event));
 
                             let start_event = RoundStartEvent::create();
