@@ -16,7 +16,7 @@ async fn main() -> std::io::Result<()> {
     let port = env::var("PORT").unwrap().parse::<u16>().unwrap();
     
     let db = Database::create();
-    let broadcaster = Broadcaster::create();
+    let broadcaster = Broadcaster::create(db.clone());
     let hourglass = Hourglass::create(db.clone(), broadcaster.clone());
 
     env::set_var("RUST_LOG", "debug");

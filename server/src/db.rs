@@ -1,9 +1,10 @@
 use std::collections::{hash_map::Entry, HashMap};
 use actix_web::web::Data;
+use log::debug;
 use parking_lot::Mutex;
 use nanoid::nanoid;
 
-use crate::{hourglass::Hourglass, types::{data::{Game, GameState, Player}, events::GameFullEvent}};
+use crate::{hourglass::Hourglass, sse::Broadcaster, types::{data::{Game, GameState, Player}, events::{ChangePlayersEvent, Event, GameFullEvent}}};
 
 
 pub struct Database {
@@ -23,7 +24,28 @@ impl Database {
         Data::new(Mutex::new(Database::new()))
     }
 
-    pub fn add_player(&mut self, user_id: String, game_id: String) {
+    pub fn add_player(
+        &mut self,
+        user_id: String,
+        game_id: String,
+        broadcaster: Data<Mutex<Broadcaster>>,
+    ) {
+        if self.players.contains_key(&user_id) && self.players.get(&user_id).unwrap().clone() != game_id {
+            let game_id_option = self.get_player_game_id(user_id.clone());
+            
+            debug!("player {} is leaving game {}", user_id, self.players.get(&user_id).unwrap());
+            self.leave_player(user_id.clone());
+
+            if let Some(game_id) = game_id_option {
+                let players = self.get_game_players(game_id.clone());
+                let event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players));
+
+                for player in self.get_game_players(game_id.clone()) {
+                    broadcaster.lock().send_single(player.user_id, event.clone());
+                }
+            }
+        }
+        debug!("added player {} to game {}", user_id, game_id);
         self.players.insert(user_id, game_id);
     }
 
@@ -63,11 +85,22 @@ impl Database {
         None
     }
 
+    pub fn leave_player(&mut self, user_id: String) {
+        if let Some(game_id) = self.players.get(&user_id) {
+            if let Some(game) = self.games.get_mut(game_id) {
+                game.players.remove(&user_id);
+            }
+        }
+        self.players.remove(&user_id);
+        debug!("removed player {} from their game, now {} players in total",
+            user_id, self.players.len());
+    }
+
     pub fn create_game(&mut self, host_id: String) -> String {
-        let alphabet: [char; 36] = [
-            '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        let alphabet: [char; 32] = [
+            '2', '3', '4', '5', '6', '7', '8', '9',
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M',
+            'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
         ];    
         let mut id: String;
         loop {
@@ -77,6 +110,7 @@ impl Database {
             }
         }
         self.games.insert(id.clone(), Game::new(host_id));
+        debug!("created game {}, now {} in total", id, self.games.len());
         id
     }
 
@@ -100,6 +134,26 @@ impl Database {
         if let Some(game) = self.games.get_mut(&game_id) {
             game.state = state;
         }
+    }
+
+    pub fn get_game_results(&mut self, game_id: String) -> Option<Vec<Player>> {
+        if let Some(game) = self.games.get(&game_id) {
+            Some(game.players.iter().map(|(_, p)| p.clone()).collect())
+        } else {
+            None
+        }
+    }
+
+    pub fn clear_game(&mut self, game_id: String) {
+        if let Some(game) = self.games.get(&game_id) {
+            for (user_id, _) in &game.players {
+                self.players.remove(user_id);
+            }
+        }
+        self.games.remove(&game_id);
+
+        debug!("cleared game {} -- {} games and {} players",
+            game_id, self.games.len(), self.players.len());
     }
 
     pub fn clear_game_player_guesses(&mut self, game_id: String) {

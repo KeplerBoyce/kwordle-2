@@ -20,7 +20,11 @@ pub async fn post(
     let game_id: String = path.into_inner();
     let req_data: SetUsernameReq = data.into_inner();
 
-    db.lock().add_player(req_data.user_id.clone(), game_id.clone());
+    db.lock().add_player(
+        req_data.user_id.clone(),
+        game_id.clone(),
+        broadcaster.clone(),
+    );
     db.lock().add_or_update_username(
         game_id.clone(),
         req_data.user_id,

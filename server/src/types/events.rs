@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::data::{GameState, Player};
 
 
+#[derive(Clone)]
 pub enum Event {
     ChangePlayersEvent(ChangePlayersEvent),
     StartGameEvent(StartGameEvent),
@@ -29,7 +30,7 @@ impl Event {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum EventType {
     ChangePlayers,
@@ -42,7 +43,7 @@ pub enum EventType {
     GameEnd,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ChangePlayersEvent {
     pub typ: EventType,
@@ -58,7 +59,7 @@ impl ChangePlayersEvent {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StartGameEvent {
     pub typ: EventType,
@@ -72,7 +73,7 @@ impl StartGameEvent {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewWordEvent {
     pub typ: EventType,
@@ -88,7 +89,7 @@ impl NewWordEvent {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GameFullEvent {
     pub typ: EventType,
@@ -102,7 +103,7 @@ pub struct GameFullEvent {
     pub round: i32,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TypingEvent {
     pub typ: EventType,
@@ -120,7 +121,7 @@ impl TypingEvent {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RoundStartEvent {
     pub typ: EventType,
@@ -134,7 +135,7 @@ impl RoundStartEvent {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RoundEndEvent {
     pub typ: EventType,
@@ -148,7 +149,7 @@ impl RoundEndEvent {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GameEndEvent {
     pub typ: EventType,

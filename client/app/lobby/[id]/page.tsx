@@ -52,13 +52,17 @@ export default function Home({ params }: {
     const lsUsername = localStorage.getItem("username");
     if (lsUsername) {
       setUsername(lsUsername);
-      setDBUsername(lsUsername);
     } else {
       setUsername(name);
-      setDBUsername(name);
     }
     return () => eventSource.close();
   }, []);
+
+  useEffect(() => {
+    if (username && firstNameSave) {
+      setDBUsername(username);
+    }
+  }, [username]);
 
   useEffect(() => {
     if (!copied) {

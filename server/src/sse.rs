@@ -1,16 +1,17 @@
 use actix_web::web::{Bytes, Data};
 use futures::Stream;
+use log::debug;
 use parking_lot::Mutex;
 use std::pin::Pin;
 use std::time::Duration;
 use std::task::{Context, Poll};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 use tokio::time::{interval_at, Instant};
 
 use crate::db::Database;
 use crate::types::common::ServerErr;
-use crate::types::events::Event;
+use crate::types::events::{ChangePlayersEvent, Event};
 
 
 pub struct Client(Receiver<Bytes>);
@@ -32,10 +33,12 @@ pub struct Broadcaster {
 }
 
 impl Broadcaster {
-    pub fn create() -> Data<Mutex<Self>> {
+    pub fn create(
+        db: Data<Mutex<Database>>,
+    ) -> Data<Mutex<Self>> {
         let broadcaster = Data::new(Mutex::new(Broadcaster::new()));
 
-        Broadcaster::spawn_ping(broadcaster.clone());
+        Broadcaster::spawn_ping(broadcaster.clone(), db.clone());
         broadcaster
     }
 
@@ -46,19 +49,62 @@ impl Broadcaster {
     }
 
     // Heartbeat on 10 second interval
-    fn spawn_ping(me: Data<Mutex<Self>>) {
+    fn spawn_ping(
+        me: Data<Mutex<Self>>,
+        db: Data<Mutex<Database>>,
+    ) {
         actix_web::rt::spawn(async move {
-            let mut interval = interval_at(Instant::now(), Duration::from_secs(10));
+            let mut interval = interval_at(Instant::now(), Duration::from_secs(2));
             loop {
                 interval.tick().await;
-                me.lock().remove_stale_clients();
+                me.lock().remove_stale_clients(db.clone());
             }
         });
     }
 
-    fn remove_stale_clients(&mut self) {
-        self.clients.retain(|_, x| x.clone().try_send(
-            Bytes::from("event: internal_status\ndata: ping\n\n")).is_ok());
+    fn remove_stale_clients(&mut self, db: Data<Mutex<Database>>) {
+        let mut to_remove: Vec<String> = Vec::new();
+        let mut games_to_update: HashSet<String> = HashSet::new();
+
+        for (id, x) in &self.clients {
+            let res = x.clone().try_send(Bytes::from(
+                "event: internal_status\ndata: ping\n\n")).is_ok();
+            if !res {
+                to_remove.push(id.clone());
+                debug!("removing stale client: {}", id.clone());
+
+                let game_id_option = db.lock().get_player_game_id(id.clone());
+                if let Some(game_id) = game_id_option {
+                    games_to_update.insert(game_id);
+                }
+                db.lock().leave_player(id.clone());
+            }
+        }
+        self.clients.retain(|id, _| !to_remove.contains(id));
+
+        for game_id in games_to_update {
+            let num_players = db.lock().get_game(game_id.clone()).unwrap().players.len();
+            if num_players == 0 {
+                debug!("clearing game {}; all players are disconnected", game_id);
+
+                db.lock().clear_game(game_id.clone());
+                continue;
+            }
+
+            let players = db.lock().get_game_players(game_id.clone());
+            let player_event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players));
+            let event = Bytes::from(["data: ", &player_event.to_string(), "\n\n"].concat());
+
+            debug!("updating game {} to remove disconnected players", game_id);
+            for user_id in db.lock().get_game_user_ids(game_id) {
+                if let Some(x) = self.clients.get(&user_id) {
+                    x.try_send(event.clone()).unwrap_or(());
+                }
+            }
+        }
+        if to_remove.len() > 0 {
+            debug!("removed stale clients, now {} in total", self.clients.len());
+        }
     }
 
     pub fn new_user_client(&mut self, user_id: String) -> (Client, Sender<Bytes>) {

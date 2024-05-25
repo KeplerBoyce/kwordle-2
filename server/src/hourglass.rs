@@ -100,6 +100,9 @@ impl Hourglass {
 
                                 let event = GameEndEvent::create();
                                 broadcaster.lock().send_game(db.clone(), game_id.clone(), Event::GameEndEvent(event));
+
+                                let _ = db.lock().get_game_results(game_id.clone());
+                                db.lock().clear_game(game_id.clone());
                             } else {
                                 glass.set_now(game.pre_round_time);
                                 db.lock().set_game_state(game_id.clone(), GameState::PreRound);
