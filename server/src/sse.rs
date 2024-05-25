@@ -2,7 +2,9 @@ use actix_web::web::{Bytes, Data};
 use futures::Stream;
 use log::debug;
 use parking_lot::Mutex;
+use std::cell::RefCell;
 use std::pin::Pin;
+use std::rc::Rc;
 use std::time::Duration;
 use std::task::{Context, Poll};
 use std::collections::{HashMap, HashSet};
@@ -10,6 +12,7 @@ use tokio::sync::mpsc::{channel, Receiver, Sender};
 use tokio::time::{interval_at, Instant};
 
 use crate::db::Database;
+use crate::hourglass::Hourglass;
 use crate::types::common::ServerErr;
 use crate::types::events::{ChangePlayersEvent, Event};
 
@@ -35,10 +38,11 @@ pub struct Broadcaster {
 impl Broadcaster {
     pub fn create(
         db: Data<Mutex<Database>>,
+        hg_rc: Rc<RefCell<Option<Data<Mutex<Hourglass>>>>>,
     ) -> Data<Mutex<Self>> {
         let broadcaster = Data::new(Mutex::new(Broadcaster::new()));
 
-        Broadcaster::spawn_ping(broadcaster.clone(), db.clone());
+        Broadcaster::spawn_ping(broadcaster.clone(), db.clone(), hg_rc);
         broadcaster
     }
 
@@ -52,17 +56,22 @@ impl Broadcaster {
     fn spawn_ping(
         me: Data<Mutex<Self>>,
         db: Data<Mutex<Database>>,
+        hg_rc: Rc<RefCell<Option<Data<Mutex<Hourglass>>>>>,
     ) {
         actix_web::rt::spawn(async move {
             let mut interval = interval_at(Instant::now(), Duration::from_secs(2));
             loop {
                 interval.tick().await;
-                me.lock().remove_stale_clients(db.clone());
+                me.lock().remove_stale_clients(db.clone(), hg_rc.clone());
             }
         });
     }
 
-    fn remove_stale_clients(&mut self, db: Data<Mutex<Database>>) {
+    fn remove_stale_clients(
+        &mut self,
+        db: Data<Mutex<Database>>,
+        hg_rc: Rc<RefCell<Option<Data<Mutex<Hourglass>>>>>,
+    ) {
         let mut to_remove: Vec<String> = Vec::new();
         let mut games_to_update: HashSet<String> = HashSet::new();
 
@@ -93,13 +102,28 @@ impl Broadcaster {
 
             let players = db.lock().get_game_players(game_id.clone());
             let state = db.lock().get_game(game_id.clone()).unwrap().state;
-            let player_event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players, state));
+            let player_event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players.clone(), state));
             let event = Bytes::from(["data: ", &player_event.to_string(), "\n\n"].concat());
 
-            debug!("updating game {} to remove disconnected players", game_id);
-            for user_id in db.lock().get_game_user_ids(game_id) {
+            debug!("sending player event to game {} to remove disconnected players", game_id);
+            for user_id in db.lock().get_game_user_ids(game_id.clone()) {
                 if let Some(x) = self.clients.get(&user_id) {
                     x.try_send(event.clone()).unwrap_or(());
+                }
+            }
+
+            let word = db.lock().get_game(game_id.clone()).unwrap().word;
+            let mut num_done = 0;
+            for player in &players {
+                if let Some(last) = player.guesses.last() {
+                    if *last == word || player.guesses.len() == 6 {
+                        num_done += 1;
+                    }
+                }
+            }
+            if num_done == players.len() {
+                if let Some(hg) = hg_rc.borrow_mut().as_deref() {
+                    hg.lock().set_glass(game_id.clone(), 0);
                 }
             }
         }

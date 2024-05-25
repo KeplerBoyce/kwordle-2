@@ -30,8 +30,12 @@ pub async fn post(
     };
     
     let mut solved = false;
+    let mut last = false;
     if let Some(player) = db.lock().get_player_mut(user_id) {
         player.guesses.push(req_data.guess.clone());
+        if player.guesses.len() == 6 {
+            last = true;
+        }
         if req_data.guess == game.word {
             solved = true;
             let sand_left = hourglass.lock().get_sand_left(game_id.clone()).unwrap();
@@ -39,10 +43,21 @@ pub async fn post(
             player.score += calculate_score(player.guesses.len() as i32, time, game.round_time, game.num_solved + 1);
         }
     }
-    if solved {
-        db.lock().get_game_mut(game_id.clone()).unwrap().num_solved += 1;
+    if solved || last {
+        if solved {
+            db.lock().get_game_mut(game_id.clone()).unwrap().num_solved += 1;
+        }
         let game = db.lock().get_game(game_id.clone()).unwrap();
-        if game.num_solved == game.players.len() as i32 {
+
+        let mut num_done = 0;
+        for (_, player) in &game.players {
+            if let Some(last) = player.guesses.last() {
+                if *last == game.word || player.guesses.len() == 6 {
+                    num_done += 1;
+                }
+            }
+        }
+        if num_done == game.players.len() as i32 {
             hourglass.lock().set_glass(game_id.clone(), 0);
         }
     }
