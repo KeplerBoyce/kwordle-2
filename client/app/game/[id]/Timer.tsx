@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 
 
-export default function Timer(props: { time: number }) {
-  const { time } = props;
+export default function Timer(props: {
+  time: number,
+  duration: number,
+  width: number,
+}) {
+  const { time, duration, width } = props;
 
   const [leftStyle, setLeftStyle] = useState({
-    width: "300px"
+    width: `${width}px`
   });
   const [rightStyle, setRightStyle] = useState({
     width: "0px"
@@ -13,23 +17,34 @@ export default function Timer(props: { time: number }) {
 
   useEffect(() => {
     setLeftStyle({
-      width: `${300 * time / 60}px`
+      width: `${Math.floor(width * time / duration)}px`
     });
     setRightStyle({
-      width: `${300 - (300 * time / 60)}px`
+      width: `${Math.min(width, Math.ceil(width - (width * time / duration)))}px`
     });
   }, [time]);
 
   return (
     <div className="flex flex-col gap-4 items-center">
-      <h1 className={"text-5xl font-bold font-mono"
-        + (time < 10 ? " text-red-500" : "")
+      <p className={"text-5xl transition duration-150"
+        + ((time < 10000 && time > 0) ? " text-red-500" : "")
+        + (time <= 0 ? " text-3xl font-semibold" : " font-bold font-mono")
       }>
-        {time}
-      </h1>
+        {time <= 0 ? "Round ended!" : Math.ceil(time / 1000)}
+      </p>
       <div className="flex h-0">
-        <div className="border border-slate-500" style={leftStyle} />
-        <div className="border border-slate-200" style={rightStyle} />
+        {time <= 0
+          ? <div className="border border-slate-200" style={rightStyle} />
+          : <>
+            <div className={"border transition duration-150 "
+              + ((time < 10000 && time > 0) ? "border-red-500" : "border-slate-500")
+              } style={leftStyle}
+            />
+            <div className={"border transition duration-150 "
+              + ((time < 10000 && time > 0) ? "border-red-200" : "border-slate-200")
+              } style={rightStyle}
+            />
+          </>}
       </div>
     </div>
   );

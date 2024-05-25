@@ -84,6 +84,8 @@ export type Player = {
   typing: boolean[],
 };
 
+export type GameState = "PRE_START" | "PRE_ROUND" | "ROUND" | "ENDED";
+
 type ChangePlayersEvent = {
   typ: "CHANGE_PLAYERS",
   players: Player[],
@@ -100,8 +102,14 @@ type NewWordEvent = {
 
 type GameFullEvent = {
   typ: "GAME_FULL",
+  state: GameState,
+  roundTime: number,
+  preRoundTime: number,
+  msLeft: number,
   players: Player[],
   word: string,
+  numRounds: number,
+  round: number,
 }
 
 type TypingEvent = {
@@ -110,8 +118,21 @@ type TypingEvent = {
   typing: boolean[],
 }
 
+type RoundStartEvent = {
+  typ: "ROUND_START",
+}
+
+type RoundEndEvent = {
+  typ: "ROUND_END",
+}
+
+type GameEndEvent = {
+  typ: "GAME_END",
+}
+
 export type Event = ChangePlayersEvent | StartGameEvent | NewWordEvent |
-                    GameFullEvent | TypingEvent;
+                    GameFullEvent | TypingEvent | RoundStartEvent | RoundEndEvent |
+                    GameEndEvent;
 
 const answerList = new Set(`aback
 abase

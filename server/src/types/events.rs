@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::words::gen_answer;
-
-use super::data::Player;
+use super::data::{GameState, Player};
 
 
 pub enum Event {
@@ -11,6 +9,9 @@ pub enum Event {
     NewWordEvent(NewWordEvent),
     GameFullEvent(GameFullEvent),
     TypingEvent(TypingEvent),
+    RoundStartEvent(RoundStartEvent),
+    RoundEndEvent(RoundEndEvent),
+    GameEndEvent(GameEndEvent),
 }
 
 impl Event {
@@ -21,6 +22,9 @@ impl Event {
             Event::NewWordEvent(e) => serde_json::to_string(e).unwrap(),
             Event::GameFullEvent(e) => serde_json::to_string(e).unwrap(),
             Event::TypingEvent(e) => serde_json::to_string(e).unwrap(),
+            Event::RoundStartEvent(e) => serde_json::to_string(e).unwrap(),
+            Event::RoundEndEvent(e) => serde_json::to_string(e).unwrap(),
+            Event::GameEndEvent(e) => serde_json::to_string(e).unwrap(),
         }
     }
 }
@@ -33,6 +37,9 @@ pub enum EventType {
     NewWord,
     GameFull,
     Typing,
+    RoundStart,
+    RoundEnd,
+    GameEnd,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -73,10 +80,10 @@ pub struct NewWordEvent {
 }
 
 impl NewWordEvent {
-    pub fn create() -> Self {
+    pub fn create(word: String,) -> Self {
         Self {
             typ: EventType::NewWord,
-            word: gen_answer(),
+            word,
         }
     }
 }
@@ -85,8 +92,14 @@ impl NewWordEvent {
 #[serde(rename_all = "camelCase")]
 pub struct GameFullEvent {
     pub typ: EventType,
+    pub state: GameState,
+    pub round_time: i32,
+    pub pre_round_time: i32,
+    pub ms_left: i32,
     pub players: Vec<Player>,
     pub word: String,
+    pub num_rounds: i32,
+    pub round: i32,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -103,6 +116,48 @@ impl TypingEvent {
             typ: EventType::Typing,
             user_id,
             typing,
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoundStartEvent {
+    pub typ: EventType,
+}
+
+impl RoundStartEvent {
+    pub fn create() -> Self {
+        Self {
+            typ: EventType::RoundStart
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoundEndEvent {
+    pub typ: EventType,
+}
+
+impl RoundEndEvent {
+    pub fn create() -> Self {
+        Self {
+            typ: EventType::RoundEnd
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GameEndEvent {
+    pub typ: EventType,
+}
+
+impl GameEndEvent {
+    pub fn create() -> Self {
+        Self {
+            typ: EventType::GameEnd
         }
     }
 }

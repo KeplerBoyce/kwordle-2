@@ -15,10 +15,11 @@ pub async fn get(
 
     let (game_id, user_id): (String, String) = path.into_inner();
 
-    let is_host = if let Some(host_id) = db.lock().get_game_host_id(game_id) {
-        host_id == user_id
+    let game_option = db.lock().get_game(game_id.clone());
+    let is_host = if let Some(game) = game_option {
+        game.host_id == user_id
     } else {
-        false
+        return Err(ServerErr::NotFound(format!("game {} not found", game_id)));
     };
 
     Ok(HttpResponse::Ok().json(IsHostRes::create(is_host)))

@@ -5,6 +5,7 @@ use actix_web::{middleware, App, HttpServer};
 
 use server::app_config::config_app;
 use server::db::Database;
+use server::hourglass::Hourglass;
 use server::sse::Broadcaster;
 
 
@@ -16,6 +17,7 @@ async fn main() -> std::io::Result<()> {
     
     let db = Database::create();
     let broadcaster = Broadcaster::create();
+    let hourglass = Hourglass::create(db.clone(), broadcaster.clone());
 
     env::set_var("RUST_LOG", "debug");
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
@@ -26,6 +28,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(db.clone())
             .app_data(broadcaster.clone())
+            .app_data(hourglass.clone())
             .wrap(middleware::Logger::default())
             .wrap(cors)
             .configure(config_app)

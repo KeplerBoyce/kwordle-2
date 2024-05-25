@@ -5,30 +5,57 @@ use crate::words::gen_answer;
 use super::events::{EventType, GameFullEvent};
 
 
+#[derive(Clone)]
 pub struct Game {
-    pub started: bool,
+    pub state: GameState,
     pub host_id: String,
     pub players: HashMap<String, Player>,
     pub word: String,
+    pub round_time: i32,
+    pub pre_round_time: i32,
+    pub num_rounds: i32,
+    pub round: i32,
+    pub num_solved: i32,
 }
 
 impl Game {
     pub fn new(host_id: String) -> Self {
         Self {
-            started: false,
+            state: GameState::PreStart,
             host_id,
             players: HashMap::new(),
             word: gen_answer(),
+            round_time: 60000,
+            pre_round_time: 5000,
+            num_rounds: 3,
+            round: 0,
+            num_solved: 0,
         }
     }
 
-    pub fn to_game_full_event(&self) -> GameFullEvent {
+    pub fn to_game_full_event(&self, ms_left: i32) -> GameFullEvent {
         GameFullEvent {
             typ: EventType::GameFull,
+            state: self.state.clone(),
+            round_time: self.round_time,
+            pre_round_time: self.pre_round_time,
+            ms_left,
             players: self.players.iter().map(|(_, p)| p.clone()).collect(),
             word: self.word.clone(),
+            num_rounds: self.num_rounds,
+            round: self.round,
         }
     }
+}
+
+
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum GameState {
+    PreStart,
+    PreRound,
+    Round,
+    Ended,
 }
 
 #[derive(Clone, Deserialize, Serialize)]

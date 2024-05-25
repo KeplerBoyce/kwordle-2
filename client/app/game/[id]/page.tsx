@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import WordleBoard from "./WordleBoard";
 import MainCenter from "@/app/MainCenter";
-import { Char, Event, Opponent, Player, WordleColor, WordleLetter, defaultColors, guessIsValid, guessesToColors, keys } from "@/util/types";
+import { Char, Event, GameState, Opponent, WordleColor, WordleLetter, defaultColors, guessIsValid, guessesToColors, keys } from "@/util/types";
 import Keyboard from "./Keyboard";
 import { useKeyPressEvent } from "react-use";
 import { Button } from "@nextui-org/react";
@@ -19,24 +19,34 @@ export default function Home({ params }: {
 }) {
   const { id } = params;
 
+  const [gameState, setGameState] = useState<GameState>("PRE_START");
   const [word, setWord] = useState("");
   const [canType, setCanType] = useState(false);
   const [row, setRow] = useState(0);
   const [col, setCol] = useState(0);
   const [grid, setGrid] = useState<Array<WordleLetter>>([]);
-  const [keyColors, setKeyColors] = useState(defaultColors);
+  const [keyColors, setKeyColors] = useState({...defaultColors});
   const [solved, setSolved] = useState(false);
   const [opponents, setOpponents] = useState<Array<Opponent>>([]);
   const [startTime, setStartTime] = useState(0);
-  const [time, setTime] = useState(60);
+  const [roundTime, setRoundTime] = useState(60000);
+  const [time, setTime] = useState(60000);
+  const [preStartTime, setPreStartTime] = useState(0);
+  const [preRoundTime, setPreRoundTime] = useState(5000);
+  const [preTime, setPreTime] = useState(5000);
+  const [score, setScore] = useState(0);
+  const [roundScore, setRoundScore] = useState(0);
+  const [showRoundScore, setShowRoundScore] = useState(false);
+  const [username, setUsername] = useState("");
+  const [round, setRound] = useState(0);
 
   useEffect(() => {
-    beginTimer();
-
     const userId = getUserID();
     const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
     let currWord = word;
     let currOpponents = opponents;
+    let currScore = score;
+    let currRound = round;
 
     eventSource.onmessage = (m) => {
       const event: Event = JSON.parse(m.data);
@@ -59,6 +69,14 @@ export default function Home({ params }: {
               };
             });
           setOpponents([...currOpponents]);
+          const you = event.players.find(p => p.userId === userId);
+          if (you) {
+            if (you.score > currScore) {
+              setRoundScore(you.score - currScore);
+            }
+            currScore = you.score;
+            setScore(you.score);
+          }
           break;
 
         case "TYPING":
@@ -70,8 +88,20 @@ export default function Home({ params }: {
           break;
 
         case "GAME_FULL":
+          setGameState(event.state);
+
           currWord = event.word;
           setWord(currWord);
+
+          setRoundTime(event.roundTime);
+          setPreRoundTime(event.preRoundTime);
+          if (event.state === "PRE_ROUND") {
+            setPreStartTime(Date.now() - (event.preRoundTime - event.msLeft));
+          } else if (event.state === "ROUND") {
+            setStartTime(Date.now() - (event.roundTime - event.msLeft));
+          }
+          currRound = event.round;
+          setRound(event.round);
 
           currOpponents = event.players
             .filter(p => p.userId !== userId)
@@ -88,6 +118,8 @@ export default function Home({ params }: {
 
           const player = event.players.find(p => p.userId === userId);
           if (player) {
+            setScore(player.score);
+            setUsername(player.username);
             const colors = guessesToColors(player.guesses, currWord);
             for (let r = 0; r < player.guesses.length; r++) {
               for (let c = 0; c < 5; c++) {
@@ -107,22 +139,60 @@ export default function Home({ params }: {
           }
           setCanType(true);
           break;
+
+        case "ROUND_START":
+          setGrid([]);
+          setRow(0);
+          setCol(0);
+          setSolved(false);
+          setCanType(true);
+          setKeyColors({...defaultColors});
+          setStartTime(Date.now());
+          currRound++;
+          setRound(currRound);
+          setGameState("ROUND");
+          break;
+
+        case "ROUND_END":
+          setPreStartTime(Date.now());
+          setGameState("PRE_ROUND");
+          break;
+
+        case "GAME_END":
+          setGameState("ENDED");
+          break;
       }
     };
     return () => eventSource.close();
   }, []);
 
-  const beginTimer = () => {
-    setStartTime(Date.now);
-  }
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTime(roundTime - (Date.now() - startTime))
+    }, 100);
+    return () => clearInterval(interval);
+  }, [startTime]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const newTime = 60 - Math.floor((Date.now() - startTime) / 1000);
-      setTime(newTime)
-    }, 1000);
+      setPreTime(preRoundTime - (Date.now() - preStartTime))
+    }, 100);
     return () => clearInterval(interval);
-  }, [startTime]);
+  }, [preStartTime]);
+
+  useEffect(() => {
+    if (roundScore !== 0) {
+      setShowRoundScore(true);
+    }
+  }, [roundScore]);
+
+  useEffect(() => {
+    if (showRoundScore) {
+      setTimeout(() => {
+        setShowRoundScore(false);
+      }, 100);
+    }
+  }, [showRoundScore]);
 
   const getUserID = () => {
     let userId = localStorage.getItem("userId");
@@ -186,7 +256,7 @@ export default function Home({ params }: {
   }
 
   const addChar = (char: Char) => {
-    if (col > 4 || solved || !canType) {
+    if (col > 4 || solved || !canType || gameState !== "ROUND") {
       return;
     }
 
@@ -287,7 +357,28 @@ export default function Home({ params }: {
 
         <div className="h-full py-12 flex flex-col items-center justify-evenly">
 
-          <Timer time={time} />
+          <div className="flex flex-col gap-4 items-center">
+            <Timer
+              time={(round === 0 && gameState === "PRE_ROUND")
+                ? 60000
+                : ((gameState === "PRE_ROUND" || gameState === "ENDED") ? 0 : time)}
+              duration={roundTime}
+              width={500}
+            />
+            <div className={"flex gap-1 items-center h-8 transition duration-150 font-semibold text-lg "
+                + ((gameState === "PRE_ROUND" && preTime > 0) ? "text-slate-500" : "text-transparent")
+              }>
+              <p>
+                {((round === 0 && gameState === "PRE_ROUND") ? "Game starting" : "Next round starting")
+                  + (preTime < 500 ? "..." : " in:")}
+              </p>
+              {preTime >= 500 &&
+                <p className="font-mono text-2xl">
+                  {Math.ceil(preTime / 1000)}
+                </p>
+              }
+            </div>
+          </div>
 
           <div className="flex gap-8 items-center">
 
@@ -304,12 +395,31 @@ export default function Home({ params }: {
               )}
             </div>
 
-            <WordleBoard
-              word={word}
-              row={row}
-              col={col}
-              grid={grid}
-            />
+            <div className="flex flex-col gap-4">
+              <div className="flex px-4 text-xl items-end">
+                <p className="font-bold">
+                  {username}
+                </p>
+                <div className="flex-grow flex flex-col gap-1 items-end">
+                  <p className={"font-bold " + (!showRoundScore
+                    ? "-translate-y-5 text-transparent transition duration-1000"
+                    : "translate-y-0 text-wordle-green")
+                  }>
+                    +{roundScore} points
+                  </p>
+                  <p className="font-bold text-wordle-green">
+                    {score} points
+                  </p>
+                </div>
+              </div>
+
+              <WordleBoard
+                word={word}
+                row={row}
+                col={col}
+                grid={grid}
+              />
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               {[...Array(4)].map((_, i) =>

@@ -3,6 +3,7 @@ use actix_web::web::{Data, Path};
 use actix_web::{HttpResponse, get};
 
 use crate::db::Database;
+use crate::hourglass::Hourglass;
 use crate::sse::Broadcaster;
 use crate::types::common::ServerErr;
 use crate::types::events::Event;
@@ -12,6 +13,7 @@ use crate::types::events::Event;
 pub async fn get(
     path: Path<String>,
     db: Data<Mutex<Database>>,
+    hourglass: Data<Mutex<Hourglass>>,
     broadcaster: Data<Mutex<Broadcaster>>,
 ) -> Result<HttpResponse, ServerErr> {
 
@@ -24,7 +26,7 @@ pub async fn get(
 
     let id_option = db.lock().get_player_game_id(user_id.clone());
     if let Some(game_id) = id_option {
-        if let Some(event) = db.lock().get_game_full_event(game_id) {
+        if let Some(event) = db.lock().get_game_full_event(game_id, hourglass.clone()) {
             broadcaster.lock().send_single(user_id, Event::GameFullEvent(event));
         }
     }

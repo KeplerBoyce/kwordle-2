@@ -3,7 +3,7 @@ use actix_web::web::Data;
 use parking_lot::Mutex;
 use nanoid::nanoid;
 
-use crate::types::{data::{Game, Player}, events::GameFullEvent};
+use crate::{hourglass::Hourglass, types::{data::{Game, GameState, Player}, events::GameFullEvent}};
 
 
 pub struct Database {
@@ -35,9 +35,18 @@ impl Database {
         }
     }
 
-    pub fn get_game_full_event(&self, game_id: String) -> Option<GameFullEvent> {
+    pub fn get_game_full_event(
+        &self,
+        game_id: String,
+        hourglass: Data<Mutex<Hourglass>>,
+    ) -> Option<GameFullEvent> {
         if let Some(game) = self.games.get(&game_id) {
-            Some(game.to_game_full_event())
+            let ms_left = if let Some(sand) = hourglass.lock().get_sand_left(game_id) {
+                sand
+            } else {
+                0
+            };
+            Some(game.to_game_full_event(ms_left))
         } else {
             None
         }
@@ -71,17 +80,33 @@ impl Database {
         id
     }
 
-    pub fn get_game_host_id(&self, game_id: String) -> Option<String> {
+    pub fn get_game(&self, game_id: String) -> Option<Game> {
         if let Some(game) = self.games.get(&game_id) {
-            Some(game.host_id.clone())
+            Some(game.clone())
         } else {
             None
         }
     }
 
-    pub fn start_game(&mut self, game_id: String) {
+    pub fn get_game_mut(&mut self, game_id: String) -> Option<&mut Game> {
         if let Some(game) = self.games.get_mut(&game_id) {
-            game.started = true;
+            Some(game)
+        } else {
+            None
+        }
+    }
+
+    pub fn set_game_state(&mut self, game_id: String, state: GameState) {
+        if let Some(game) = self.games.get_mut(&game_id) {
+            game.state = state;
+        }
+    }
+
+    pub fn clear_game_player_guesses(&mut self, game_id: String) {
+        if let Some(game) = self.games.get_mut(&game_id) {
+            for (_, player) in &mut game.players {
+                player.guesses = Vec::new();
+            }
         }
     }
 
