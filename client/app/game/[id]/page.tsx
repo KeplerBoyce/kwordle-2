@@ -11,6 +11,7 @@ import Link from "next/link";
 import SmallWordleBoard from "./SmallWordleBoard";
 import Timer from "./Timer";
 import Boards from "./Boards";
+import Header from "./Header";
 
 
 export default function Home({ params }: {
@@ -341,30 +342,9 @@ export default function Home({ params }: {
   return (
     <MainCenter>
       <div className="h-screen flex flex-col items-center">
-        <div className="p-4 flex w-full border-b-3 border-slate-200 items-center justify-between text-black">
-
-          <div className="w-1/4">
-            <Link href="/">
-              <Button className="bg-transparent flex gap-2 items-center">
-                <div className="text-3xl">
-                  ←
-                </div>
-                <p className="text-base font-bold uppercase">
-                  Home
-                </p>
-              </Button>
-            </Link>
-          </div>
-
-          <p className="text-3xl font-semibold">
-            Kwordle
-          </p>
-
-          <div className="w-1/4" />
-        </div>
+        <Header />
 
         <div className="h-full py-12 flex flex-col items-center justify-evenly">
-
           <div className="flex flex-col gap-4 items-center">
             <Timer
               time={(round === 0 && gameState === "PRE_ROUND")
