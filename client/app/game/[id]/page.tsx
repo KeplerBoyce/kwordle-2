@@ -341,7 +341,7 @@ export default function Home({ params }: {
 
   return (
     <MainCenter>
-      <div className="h-screen flex flex-col items-center">
+      <div className="w-full h-screen flex flex-col items-center">
         <Header />
 
         <div className="h-full py-12 flex flex-col items-center justify-evenly">
