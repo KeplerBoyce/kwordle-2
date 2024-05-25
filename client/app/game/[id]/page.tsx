@@ -39,6 +39,7 @@ export default function Home({ params }: {
   const [showRoundScore, setShowRoundScore] = useState(false);
   const [username, setUsername] = useState("");
   const [round, setRound] = useState(0);
+  const [prevWord, setPrevWord] = useState("");
 
   useEffect(() => {
     const userId = getUserID();
@@ -154,11 +155,13 @@ export default function Home({ params }: {
           break;
 
         case "ROUND_END":
+          setPrevWord(currWord);
           setPreStartTime(Date.now());
           setGameState("PRE_ROUND");
           break;
 
         case "GAME_END":
+          setPrevWord(currWord);
           setGameState("ENDED");
           break;
       }
@@ -333,22 +336,22 @@ export default function Home({ params }: {
   return (
     <MainCenter>
       <div className="h-screen flex flex-col items-center">
-        <div className="p-4 flex w-full border-b-3 border-slate-200 items-center justify-between">
+        <div className="p-4 flex w-full border-b-3 border-slate-200 items-center justify-between text-black">
 
           <div className="w-1/4">
             <Link href="/">
-              <Button className="bg-transparent text-slate-500 flex gap-2 items-center">
+              <Button className="bg-transparent flex gap-2 items-center">
                 <div className="text-3xl">
                   ←
                 </div>
-                <p className="text-xl font-bold">
+                <p className="text-base font-bold uppercase">
                   Home
                 </p>
               </Button>
             </Link>
           </div>
 
-          <p className="text-3xl font-bold">
+          <p className="text-3xl font-semibold">
             Kwordle
           </p>
 
@@ -357,7 +360,7 @@ export default function Home({ params }: {
 
         <div className="h-full py-12 flex flex-col items-center justify-evenly">
 
-          <div className="flex flex-col gap-4 items-center">
+          <div className="flex flex-col gap-4 items-center p-6 rounded-xl bg-slate-200">
             <Timer
               time={(round === 0 && gameState === "PRE_ROUND")
                 ? 60000
@@ -366,22 +369,32 @@ export default function Home({ params }: {
               width={500}
               textOverride={(gameState === "PRE_ROUND" && round === 0)
                 ? "Get ready!"
-                : (gameState === "ENDED" ? "Game ended!" : undefined)
+                : (gameState === "PRE_ROUND"
+                  ? "Round ended!"
+                  : (gameState === "ENDED"
+                    ? "Game ended!"
+                    : undefined))
               }
             />
-            <div className={"flex gap-1 items-center h-8 transition duration-150 font-semibold text-lg "
-                + ((gameState === "PRE_ROUND" && preTime > 0) ? "text-slate-500" : "text-transparent")
-              }>
-              <p>
-                {((round === 0 && gameState === "PRE_ROUND") ? "Game starting" : "Next round starting")
-                  + (preTime < 500 ? "..." : " in:")}
-              </p>
-              {preTime >= 500 &&
-                <p className="font-mono text-2xl">
-                  {Math.ceil(preTime / 1000)}
-                </p>
-              }
+            <div className="flex gap-2 items-center h-8 transition duration-150
+                text-base uppercase">
+              {preTime >= 0 ? <>
+                  <p className="font-bold">
+                    {(round === 0 && gameState === "PRE_ROUND") ? "Game starting in:" : "Next round in:"}
+                  </p>
+                  <p className="font-mono text-3xl text-black">
+                    {Math.ceil(preTime / 1000)}
+                  </p>
+                </> : <p className="font-bold">
+                  Type your guesses!
+                </p>}
             </div>
+          </div>
+
+          <div className={"flex text-base uppercase font-bold rounded-lg px-6 py-4 transition duration-150 "
+            + ((gameState === "ENDED" || (gameState === "PRE_ROUND" && round > 0)) ? "text-black bg-slate-200" : "text-transparent bg-transparent")
+          }>
+            The word was: {prevWord}
           </div>
 
           <div className="flex gap-8 items-center">
@@ -400,8 +413,8 @@ export default function Home({ params }: {
             </div>
 
             <div className="flex flex-col gap-4">
-              <div className="flex px-4 text-xl items-end">
-                <p className="font-bold">
+              <div className="flex px-1 items-end">
+                <p className="text-black font-semibold text-xl">
                   {username}
                 </p>
                 <div className="flex-grow flex flex-col gap-1 items-end">
@@ -411,9 +424,14 @@ export default function Home({ params }: {
                   }>
                     +{roundScore} points
                   </p>
-                  <p className="font-bold text-wordle-green">
-                    {score} points
-                  </p>
+                  <div className="flex items-end gap-1">
+                    <p className="font-bold uppercase text-3xl text-wordle-green">
+                      {score}
+                    </p>
+                    <p className="font-bold uppercase text-sm text-black pb-1">
+                      points
+                    </p>
+                  </div>
                 </div>
               </div>
 

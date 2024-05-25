@@ -27,7 +27,7 @@ impl Game {
             word: gen_answer(),
             round_time: 60000,
             pre_round_time: 5000,
-            num_rounds: 3,
+            num_rounds: 5,
             round: 0,
             num_solved: 0,
         }

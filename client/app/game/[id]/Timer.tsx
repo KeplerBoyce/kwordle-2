@@ -26,28 +26,26 @@ export default function Timer(props: {
   }, [time]);
 
   return (
-    <div className="flex flex-col gap-4 items-center">
-      {textOverride
-      ? <p className="text-5xl font-semibold">
-        {textOverride}
-      </p>
-      : <p className={"text-5xl transition duration-150"
-        + ((time < 10000 && time > 0) ? " text-red-500" : "")
-        + (time <= 0 ? " text-3xl font-semibold" : " font-bold font-mono")
-      }>
-        {time <= 0 ? "Round ended!" : Math.ceil(time / 1000)}
-      </p>}
+    <div className="flex flex-col gap-4 items-center text-black">
+      <div className="flex items-center justify-center h-12">
+        <p className={"transition duration-150 "
+          + (textOverride ? "text-3xl uppercase font-bold" : "text-5xl font-mono")
+          + ((time < 10000 && time > 0) ? " text-red-500" : "")
+        }>
+          {textOverride ?? Math.ceil(time / 1000)}
+        </p>
+      </div>
 
-      <div className="flex h-0">
+      <div className="flex h-1">
         {time <= 0
-          ? <div className="border border-slate-200" style={rightStyle} />
+          ? <div className="bg-slate-300" style={rightStyle} />
           : <>
-            <div className={"border transition duration-150 "
-              + ((time < 10000 && time > 0) ? "border-red-500" : "border-slate-500")
+            <div className={"transition duration-150 "
+              + ((time < 10000 && time > 0) ? "bg-red-500" : "bg-slate-500")
               } style={leftStyle}
             />
-            <div className={"border transition duration-150 "
-              + ((time < 10000 && time > 0) ? "border-red-200" : "border-slate-200")
+            <div className={"transition duration-150 "
+              + ((time < 10000 && time > 0) ? "bg-red-200" : "bg-slate-300")
               } style={rightStyle}
             />
           </>}

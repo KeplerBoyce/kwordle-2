@@ -154,7 +154,7 @@ export default function Home({ params }: {
           <p className="font-semibold uppercase">
             Game ID:
           </p>
-          <h1 className="text-5xl font-mono uppercase">
+          <h1 className="text-5xl font-mono uppercase text-black">
             {id}
           </h1>
           <Button
@@ -180,7 +180,7 @@ export default function Home({ params }: {
             <input
               type="text"
               maxLength={16}
-              className={`h-full w-48 p-1 text-center rounded-xl text-xl
+              className={`h-full w-48 p-1 text-center text-black rounded-xl text-xl
                 font-semibold border-2 transition duration-150 focus:outline-none `
                 + (username ? "border-slate-300" : "border-red-500")}
               placeholder={randomName}
@@ -224,10 +224,10 @@ export default function Home({ params }: {
             {[...Array(9)].map((_, i) =>
               <div key={i} className="flex border-2 border-slate-300
                   rounded-lg w-full px-2 bg-slate-100">
-                <p className="w-6 font-bold text-slate-400">
+                <p className="w-6 font-bold text-slate-500">
                   {i + 1}.
                 </p>
-                <p className="font-semibold">
+                <p className="font-semibold text-black">
                   {i < players.length ? players[i] : ""}
                 </p>
               </div>
