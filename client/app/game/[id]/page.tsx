@@ -10,6 +10,7 @@ import { Button } from "@nextui-org/react";
 import Link from "next/link";
 import SmallWordleBoard from "./SmallWordleBoard";
 import Timer from "./Timer";
+import Boards from "./Boards";
 
 
 export default function Home({ params }: {
@@ -395,27 +396,13 @@ export default function Home({ params }: {
             </div>
           </div>
 
-          <div className={"flex text-base uppercase font-bold rounded-lg px-6 py-4 transition duration-150 "
+          <div className={"flex text-base uppercase font-bold rounded-xl px-6 py-4 transition duration-150 "
             + ((gameState === "ENDED" || (gameState === "PRE_ROUND" && round > 0)) ? "text-black bg-slate-200" : "text-transparent bg-transparent")
           }>
             The word was: {prevWord}
           </div>
 
-          <div className="flex gap-8 items-center">
-
-            <div className="grid grid-cols-2 gap-4">
-              {[...Array(4)].map((_, i) =>
-                <SmallWordleBoard
-                  key={i}
-                  active={i < opponents.length}
-                  colors={i < opponents.length ? opponents[i].guessColors : []}
-                  username={i < opponents.length ? opponents[i].username : ""}
-                  score={i < opponents.length ? opponents[i].score : 0}
-                  typing={i < opponents.length ? opponents[i].typing : []}
-                />
-              )}
-            </div>
-
+          <Boards opponents={opponents} middle={
             <div className="flex flex-col gap-4">
               <div className="flex px-1 items-end">
                 <p className="text-black font-semibold text-xl flex-grow">
@@ -445,21 +432,8 @@ export default function Home({ params }: {
                 col={col}
                 grid={grid}
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {[...Array(4)].map((_, i) =>
-                <SmallWordleBoard
-                  key={i}
-                  active={i + 4 < opponents.length}
-                  colors={i + 4 < opponents.length ? opponents[i].guessColors : []}
-                  username={i + 4 < opponents.length ? opponents[i].username : ""}
-                  score={i + 4 < opponents.length ? opponents[i].score : 0}
-                  typing={i + 4 < opponents.length ? opponents[i].typing : []}
-                />
-              )}
-            </div>
-          </div>
+            </div>}
+          />
 
           <Keyboard
             colors={keyColors}

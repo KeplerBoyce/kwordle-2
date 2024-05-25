@@ -243,7 +243,7 @@ export default function Home({ params }: {
             onClick={startGame}
             className={"w-full uppercase font-semibold text-2xl h-16" + (isHost ? "" : " bg-slate-400")}
           >
-            {isHost ? (startLoading ? "Starting" : "Start") : "Waiting for host"}
+            {startLoading ? "Starting" : (isHost ? "Start" : "Waiting for host")}
           </Button>
         </div>
       </RoundedBox>

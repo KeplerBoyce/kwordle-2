@@ -12,8 +12,11 @@ export default function SmallWordleBoard(props: {
   const { active, colors, username, score, typing } = props;
 
   return (
-    <div className="flex flex-col gap-1 border-2 p-2 rounded-xl">
-      <p className="text-center font-bold">
+    <div className={"flex flex-col gap-1 border-2 p-2 rounded-xl transition duration-250 "
+      + (colors.length && colors.slice(colors.length - 4, colors.length).every(c => c === "green")
+        ? "border-wordle-green" : "border-slate-200")
+    }>
+      <p className="text-center font-semibold text-black">
         {username}
       </p>
       
@@ -33,7 +36,7 @@ export default function SmallWordleBoard(props: {
         )}
       </div>
 
-      <p className="text-center font-bold text-xl text-wordle-green font-mono">
+      <p className="text-center font-semibold text-xl text-wordle-green">
         {username ? score : ""}
       </p>
     </div>
