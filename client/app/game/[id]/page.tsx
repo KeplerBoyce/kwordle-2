@@ -104,6 +104,10 @@ export default function Home({ params }: {
           currRound = event.round;
           setRound(event.round);
 
+          if ((event.state === "PRE_ROUND" && event.round > 0) || event.state === "ENDED") {
+            setPrevWord(currWord);
+          }
+
           currOpponents = event.players
             .filter(p => p.userId !== userId)
             .map(p => {
@@ -360,11 +364,11 @@ export default function Home({ params }: {
 
         <div className="h-full py-12 flex flex-col items-center justify-evenly">
 
-          <div className="flex flex-col gap-4 items-center p-6 rounded-xl bg-slate-200">
+          <div className="flex flex-col gap-4 items-center">
             <Timer
               time={(round === 0 && gameState === "PRE_ROUND")
-                ? 60000
-                : ((gameState === "PRE_ROUND" || gameState === "ENDED") ? 0 : time)}
+                ? roundTime : ((gameState === "PRE_ROUND" || gameState === "ENDED")
+                ? 0 : (Date.now() - startTime > 100 ? time : roundTime))}
               duration={roundTime}
               width={500}
               textOverride={(gameState === "PRE_ROUND" && round === 0)
@@ -386,7 +390,7 @@ export default function Home({ params }: {
                     {Math.ceil(preTime / 1000)}
                   </p>
                 </> : <p className="font-bold">
-                  Type your guesses!
+                  {gameState === "ENDED" ? "Results will appear soon..." : "Type your guesses!"}
                 </p>}
             </div>
           </div>
@@ -414,15 +418,15 @@ export default function Home({ params }: {
 
             <div className="flex flex-col gap-4">
               <div className="flex px-1 items-end">
-                <p className="text-black font-semibold text-xl">
+                <p className="text-black font-semibold text-xl flex-grow">
                   {username}
                 </p>
-                <div className="flex-grow flex flex-col gap-1 items-end">
-                  <p className={"font-bold " + (!showRoundScore
+                <div className="flex flex-col gap-1 items-start">
+                  <p className={"text-3xl font-bold -translate-x-4 " + (!showRoundScore
                     ? "-translate-y-5 text-transparent transition duration-1000"
                     : "translate-y-0 text-wordle-green")
                   }>
-                    +{roundScore} points
+                    +{roundScore}
                   </p>
                   <div className="flex items-end gap-1">
                     <p className="font-bold uppercase text-3xl text-wordle-green">
