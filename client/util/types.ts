@@ -84,6 +84,14 @@ export type Player = {
   typing: boolean[],
 };
 
+export type Result = {
+  username: string,
+  score: number,
+  ranks: number[],
+  numGuesses: number[],
+  solves: boolean[],
+};
+
 export type GameState = "PRE_START" | "PRE_ROUND" | "ROUND" | "ENDED";
 
 type ChangePlayersEvent = {
@@ -111,6 +119,9 @@ type GameFullEvent = {
   word: string,
   numRounds: number,
   round: number,
+  results?: {
+    [userId: number]: Result,
+  },
 }
 
 type TypingEvent = {
@@ -129,6 +140,9 @@ type RoundEndEvent = {
 
 type GameEndEvent = {
   typ: "GAME_END",
+  results: {
+    [userId: number]: Result,
+  },
 }
 
 export type Event = ChangePlayersEvent | StartGameEvent | NewWordEvent |

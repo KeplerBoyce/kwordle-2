@@ -78,6 +78,7 @@ impl Hourglass {
                             glass.set_now(game.round_time);
                             db.lock().set_game_state(game_id.clone(), GameState::Round);
                             db.lock().clear_game_player_guesses(game_id.clone());
+                            db.lock().add_player_results(game_id.clone());
 
                             let new_word = gen_answer();
                             db.lock().get_game_mut(game_id.clone()).unwrap().word = new_word.clone();
@@ -99,11 +100,9 @@ impl Hourglass {
                                 glasses_to_break.push(game_id.clone());
                                 db.lock().set_game_state(game_id.clone(), GameState::Ended);
 
-                                let event = GameEndEvent::create();
+                                let results = db.lock().get_game_results(game_id.clone()).unwrap();
+                                let event = GameEndEvent::create(results);
                                 broadcaster.lock().send_game(db.clone(), game_id.clone(), Event::GameEndEvent(event));
-
-                                let _ = db.lock().get_game_results(game_id.clone());
-                                db.lock().clear_game(game_id.clone());
                             } else {
                                 glass.set_now(game.pre_round_time);
                                 db.lock().set_game_state(game_id.clone(), GameState::PreRound);

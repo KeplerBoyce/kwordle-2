@@ -6,7 +6,7 @@ export default function MainCenter(props: { children?: ReactNode }) {
   
   return (
     <main className="flex justify-center items-center min-h-screen text-slate-500">
-      <div className="flex justify-center items-center max-w-screen-lg w-full h-full px-4">
+      <div className="flex justify-center items-center w-screen w-full h-full">
         {children}
       </div>
     </main>

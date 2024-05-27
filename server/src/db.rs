@@ -4,7 +4,7 @@ use log::debug;
 use parking_lot::Mutex;
 use nanoid::nanoid;
 
-use crate::{hourglass::Hourglass, sse::Broadcaster, types::{data::{Game, GameState, Player}, events::{ChangePlayersEvent, Event, GameFullEvent}}};
+use crate::{hourglass::Hourglass, sse::Broadcaster, types::{data::{Game, GameState, Player, PlayerResult}, events::{ChangePlayersEvent, Event, GameFullEvent}}};
 
 
 pub struct Database {
@@ -72,6 +72,15 @@ impl Database {
             Some(game.to_game_full_event(ms_left))
         } else {
             None
+        }
+    }
+
+    pub fn add_player_results(&mut self, game_id: String) {
+        if let Some(game) = self.games.get_mut(&game_id) {
+            let num_players = game.players.len() as i32;
+            for (_, player) in &mut game.players {
+                player.results.add_round(num_players);
+            }
         }
     }
 
@@ -143,9 +152,9 @@ impl Database {
         }
     }
 
-    pub fn get_game_results(&mut self, game_id: String) -> Option<Vec<Player>> {
+    pub fn get_game_results(&mut self, game_id: String) -> Option<HashMap<String, PlayerResult>> {
         if let Some(game) = self.games.get(&game_id) {
-            Some(game.players.iter().map(|(_, p)| p.clone()).collect())
+            Some(game.get_results())
         } else {
             None
         }

@@ -31,16 +31,24 @@ pub async fn post(
     
     let mut solved = false;
     let mut last = false;
+
     if let Some(player) = db.lock().get_player_mut(user_id) {
         player.guesses.push(req_data.guess.clone());
+        *player.results.num_guesses.last_mut().unwrap() += 1;
+
         if player.guesses.len() == 6 {
             last = true;
         }
         if req_data.guess == game.word {
             solved = true;
+            *player.results.solves.last_mut().unwrap() = true;
+            *player.results.ranks.last_mut().unwrap() = game.num_solved + 1;
+
             let sand_left = hourglass.lock().get_sand_left(game_id.clone()).unwrap();
             let time = game.round_time - sand_left;
+
             player.score += calculate_score(player.guesses.len() as i32, time, game.round_time, game.num_solved + 1);
+            player.results.score = player.score;
         }
     }
     if solved || last {

@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import WordleBoard from "./WordleBoard";
 import MainCenter from "@/app/MainCenter";
-import { Char, Event, GameState, Opponent, WordleColor, WordleLetter, defaultColors, genRandomUsername, guessIsValid, guessesToColors, keys } from "@/util/types";
+import { Char, Event, GameState, Opponent, Result, WordleColor, WordleLetter, defaultColors, genRandomUsername, guessIsValid, guessesToColors, keys } from "@/util/types";
 import Keyboard from "./Keyboard";
 import { useKeyPressEvent } from "react-use";
 import Timer from "./Timer";
 import Boards from "./Boards";
 import Header from "./Header";
+import Results from "./Results";
 
 
 export default function Home({ params }: {
@@ -39,6 +40,9 @@ export default function Home({ params }: {
   const [username, setUsername] = useState("");
   const [round, setRound] = useState(0);
   const [prevWord, setPrevWord] = useState("");
+  const [results, setResults] = useState<{[userId: string]: Result}>({});
+  const [showResults, setShowResults] = useState(false);
+  const [myId, setMyId] = useState("");
 
   useEffect(() => {
     const asyncFunc = async () => {
@@ -166,6 +170,9 @@ export default function Home({ params }: {
               }
             }
             setCanType(true);
+            if (event.results) {
+              setResults(event.results);
+            }
             break;
 
           case "ROUND_START":
@@ -189,6 +196,7 @@ export default function Home({ params }: {
 
           case "GAME_END":
             setPrevWord(currWord);
+            setResults(event.results);
             setGameState("ENDED");
             break;
         }
@@ -226,6 +234,14 @@ export default function Home({ params }: {
     }
   }, [showRoundScore]);
 
+  useEffect(() => {
+    if (gameState === "ENDED") {
+      setTimeout(() => {
+        setShowResults(true);
+      }, 3000);
+    }
+  }, [gameState]);
+
   const getUserID = () => {
     let userId = localStorage.getItem("userId");
     if (!userId) {
@@ -235,6 +251,7 @@ export default function Home({ params }: {
       }
       localStorage.setItem("userId", userId);
     }
+    setMyId(userId);
     return userId;
   }
 
@@ -364,8 +381,11 @@ export default function Home({ params }: {
 
   return (
     <MainCenter>
+      <Results active={showResults} results={results} myId={myId} />
       <div className="w-full h-screen flex flex-col items-center">
-        <Header />
+        <div className="w-full z-20">
+          <Header />
+        </div>
 
         <div className="h-full py-4 flex flex-col items-center justify-around">
           <div className="flex flex-col gap-4 items-center">

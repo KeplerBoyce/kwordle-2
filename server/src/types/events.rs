@@ -1,6 +1,7 @@
+use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
-use super::data::{GameState, Player};
+use super::data::{GameState, Player, PlayerResult};
 
 
 #[derive(Clone)]
@@ -103,6 +104,7 @@ pub struct GameFullEvent {
     pub word: String,
     pub num_rounds: i32,
     pub round: i32,
+    pub results: HashMap<String, PlayerResult>,
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -132,7 +134,7 @@ pub struct RoundStartEvent {
 impl RoundStartEvent {
     pub fn create() -> Self {
         Self {
-            typ: EventType::RoundStart
+            typ: EventType::RoundStart,
         }
     }
 }
@@ -146,7 +148,7 @@ pub struct RoundEndEvent {
 impl RoundEndEvent {
     pub fn create() -> Self {
         Self {
-            typ: EventType::RoundEnd
+            typ: EventType::RoundEnd,
         }
     }
 }
@@ -155,12 +157,14 @@ impl RoundEndEvent {
 #[serde(rename_all = "camelCase")]
 pub struct GameEndEvent {
     pub typ: EventType,
+    pub results: HashMap<String, PlayerResult>,
 }
 
 impl GameEndEvent {
-    pub fn create() -> Self {
+    pub fn create(results: HashMap<String, PlayerResult>) -> Self {
         Self {
-            typ: EventType::GameEnd
+            typ: EventType::GameEnd,
+            results,
         }
     }
 }
