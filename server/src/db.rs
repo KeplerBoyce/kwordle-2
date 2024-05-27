@@ -90,6 +90,12 @@ impl Database {
         if let Some(game_id) = self.players.get(&user_id) {
             if let Some(game) = self.games.get_mut(game_id) {
                 game.players.remove(&user_id);
+                if game.host_id == user_id && game.players.len() > 0 {
+                    for (id, _) in &game.players {
+                        game.host_id = id.clone();
+                        break;
+                    }
+                }
             }
         }
         self.players.remove(&user_id);

@@ -3,12 +3,9 @@
 import { useEffect, useState } from "react";
 import WordleBoard from "./WordleBoard";
 import MainCenter from "@/app/MainCenter";
-import { Char, Event, GameState, Opponent, WordleColor, WordleLetter, defaultColors, guessIsValid, guessesToColors, keys } from "@/util/types";
+import { Char, Event, GameState, Opponent, WordleColor, WordleLetter, defaultColors, genRandomUsername, guessIsValid, guessesToColors, keys } from "@/util/types";
 import Keyboard from "./Keyboard";
 import { useKeyPressEvent } from "react-use";
-import { Button } from "@nextui-org/react";
-import Link from "next/link";
-import SmallWordleBoard from "./SmallWordleBoard";
 import Timer from "./Timer";
 import Boards from "./Boards";
 import Header from "./Header";
@@ -44,135 +41,161 @@ export default function Home({ params }: {
   const [prevWord, setPrevWord] = useState("");
 
   useEffect(() => {
-    const userId = getUserID();
-    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
-    let currWord = word;
-    let currOpponents = opponents;
-    let currScore = score;
-    let currRound = round;
+    const asyncFunc = async () => {
+      const userId = getUserID();
 
-    eventSource.onmessage = (m) => {
-      const event: Event = JSON.parse(m.data);
-      switch (event.typ) {
-        case "NEW_WORD":
-          currWord = event.word;
-          setWord(currWord);
-          break;
+      let initUsername;
+      const name = genRandomUsername();
+      const lsUsername = localStorage.getItem("username");
+      if (lsUsername) {
+        setUsername(lsUsername);
+        initUsername = lsUsername;
+      } else {
+        setUsername(name);
+        initUsername = name;
+      }
+      const headers: HeadersInit = new Headers();
+      headers.set("Content-Type", "application/json");
 
-        case "CHANGE_PLAYERS":
-          currOpponents = event.players
-            .filter(p => p.userId !== userId)
-            .map(p => {
-              return {
-                userId: p.userId,
-                username: p.username,
-                guessColors: guessesToColors(p.guesses, currWord),
-                score: p.score,
-                typing: p.typing,
-              };
-            });
-          setOpponents([...currOpponents]);
-          const you = event.players.find(p => p.userId === userId);
-          if (you) {
-            if (you.score > currScore) {
-              setRoundScore(you.score - currScore);
-            }
-            currScore = you.score;
-            setScore(you.score);
-          }
-          break;
+      await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/game/${id}/user`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          userId,
+          username: initUsername,
+        }),
+      });
 
-        case "TYPING":
-          const opponentIdx = currOpponents.findIndex(p => p.userId === event.userId);
-          if (opponentIdx >= 0) {
-            currOpponents[opponentIdx].typing = event.typing;
+      const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
+      let currWord = word;
+      let currOpponents = opponents;
+      let currScore = score;
+      let currRound = round;
+
+      eventSource.onmessage = (m) => {
+        const event: Event = JSON.parse(m.data);
+        switch (event.typ) {
+          case "NEW_WORD":
+            currWord = event.word;
+            setWord(currWord);
+            break;
+
+          case "CHANGE_PLAYERS":
+            currOpponents = event.players
+              .filter(p => p.userId !== userId)
+              .map(p => {
+                return {
+                  userId: p.userId,
+                  username: p.username,
+                  guessColors: guessesToColors(p.guesses, currWord),
+                  score: p.score,
+                  typing: p.typing,
+                };
+              });
             setOpponents([...currOpponents]);
-          }
-          break;
+            const you = event.players.find(p => p.userId === userId);
+            if (you) {
+              if (you.score > currScore) {
+                setRoundScore(you.score - currScore);
+              }
+              currScore = you.score;
+              setScore(you.score);
+            }
+            break;
 
-        case "GAME_FULL":
-          setGameState(event.state);
+          case "TYPING":
+            const opponentIdx = currOpponents.findIndex(p => p.userId === event.userId);
+            if (opponentIdx >= 0) {
+              currOpponents[opponentIdx].typing = event.typing;
+              setOpponents([...currOpponents]);
+            }
+            break;
 
-          currWord = event.word;
-          setWord(currWord);
+          case "GAME_FULL":
+            setGameState(event.state);
 
-          setRoundTime(event.roundTime);
-          setPreRoundTime(event.preRoundTime);
-          if (event.state === "PRE_ROUND") {
-            setPreStartTime(Date.now() - (event.preRoundTime - event.msLeft));
-          } else if (event.state === "ROUND") {
-            setStartTime(Date.now() - (event.roundTime - event.msLeft));
-          }
-          currRound = event.round;
-          setRound(event.round);
+            currWord = event.word;
+            setWord(currWord);
 
-          if ((event.state === "PRE_ROUND" && event.round > 0) || event.state === "ENDED") {
-            setPrevWord(currWord);
-          }
+            setRoundTime(event.roundTime);
+            setPreRoundTime(event.preRoundTime);
+            if (event.state === "PRE_ROUND") {
+              setPreStartTime(Date.now() - (event.preRoundTime - event.msLeft));
+            } else if (event.state === "ROUND") {
+              setStartTime(Date.now() - (event.roundTime - event.msLeft));
+            }
+            currRound = event.round;
+            setRound(event.round);
 
-          currOpponents = event.players
-            .filter(p => p.userId !== userId)
-            .map(p => {
-              return {
-                userId: p.userId,
-                username: p.username,
-                guessColors: guessesToColors(p.guesses, currWord),
-                score: p.score,
-                typing: p.typing,
-              };
-            });
-          setOpponents(currOpponents);
+            if ((event.state === "PRE_ROUND" && event.round > 0) || event.state === "ENDED") {
+              setPrevWord(currWord);
+            }
 
-          const player = event.players.find(p => p.userId === userId);
-          if (player) {
-            setScore(player.score);
-            setUsername(player.username);
-            const colors = guessesToColors(player.guesses, currWord);
-            for (let r = 0; r < player.guesses.length; r++) {
-              for (let c = 0; c < 5; c++) {
-                grid.push({
-                  char: player.guesses[r].charAt(c) as Char,
-                  color: colors[r * 5 + c],
-                })
-                updateCharColor(player.guesses[r].charAt(c) as Char, colors[r * 5 + c]);
+            currOpponents = event.players
+              .filter(p => p.userId !== userId)
+              .map(p => {
+                return {
+                  userId: p.userId,
+                  username: p.username,
+                  guessColors: guessesToColors(p.guesses, currWord),
+                  score: p.score,
+                  typing: p.typing,
+                };
+              });
+            setOpponents(currOpponents);
+
+            const player = event.players.find(p => p.userId === userId);
+            if (player) {
+              setScore(player.score);
+              setUsername(player.username);
+              const colors = guessesToColors(player.guesses, currWord);
+              for (let r = 0; r < player.guesses.length; r++) {
+                for (let c = 0; c < 5; c++) {
+                  grid.push({
+                    char: player.guesses[r].charAt(c) as Char,
+                    color: colors[r * 5 + c],
+                  })
+                  updateCharColor(player.guesses[r].charAt(c) as Char, colors[r * 5 + c]);
+                }
+              }
+              if (player.guesses.length > 0 &&
+                  player.guesses[player.guesses.length - 1] === currWord) {
+                setSolved(true);
+              } else {
+                setRow(player.guesses.length);
               }
             }
-            if (player.guesses.length > 0 &&
-                player.guesses[player.guesses.length - 1] === currWord) {
-              setSolved(true);
-            } else {
-              setRow(player.guesses.length);
-            }
-          }
-          setCanType(true);
-          break;
+            setCanType(true);
+            break;
 
-        case "ROUND_START":
-          setGrid([]);
-          setRow(0);
-          setCol(0);
-          setSolved(false);
-          setCanType(true);
-          setKeyColors({...defaultColors});
-          setStartTime(Date.now());
-          currRound++;
-          setRound(currRound);
-          setGameState("ROUND");
-          break;
+          case "ROUND_START":
+            setGrid([]);
+            setRow(0);
+            setCol(0);
+            setSolved(false);
+            setCanType(true);
+            setKeyColors({...defaultColors});
+            setStartTime(Date.now());
+            currRound++;
+            setRound(currRound);
+            setGameState("ROUND");
+            break;
 
-        case "ROUND_END":
-          setPrevWord(currWord);
-          setPreStartTime(Date.now());
-          setGameState("PRE_ROUND");
-          break;
+          case "ROUND_END":
+            setPrevWord(currWord);
+            setPreStartTime(Date.now());
+            setGameState("PRE_ROUND");
+            break;
 
-        case "GAME_END":
-          setPrevWord(currWord);
-          setGameState("ENDED");
-          break;
-      }
+          case "GAME_END":
+            setPrevWord(currWord);
+            setGameState("ENDED");
+            break;
+        }
+      };
+      return () => eventSource.close();
     };
-    return () => eventSource.close();
+    asyncFunc();
   }, []);
 
   useEffect(() => {
@@ -344,7 +367,7 @@ export default function Home({ params }: {
       <div className="w-full h-screen flex flex-col items-center">
         <Header />
 
-        <div className="h-full py-12 flex flex-col items-center justify-evenly">
+        <div className="h-full py-4 flex flex-col items-center justify-around">
           <div className="flex flex-col gap-4 items-center">
             <Timer
               time={(round === 0 && gameState === "PRE_ROUND")
@@ -361,6 +384,7 @@ export default function Home({ params }: {
                     : undefined))
               }
             />
+
             <div className="flex gap-2 items-center h-8 transition duration-150
                 text-base uppercase">
               {preTime >= 0 ? <>
@@ -374,12 +398,12 @@ export default function Home({ params }: {
                   {gameState === "ENDED" ? "Results will appear soon..." : "Type your guesses!"}
                 </p>}
             </div>
-          </div>
 
-          <div className={"flex text-base uppercase font-bold rounded-xl px-6 py-4 transition duration-150 "
-            + ((gameState === "ENDED" || (gameState === "PRE_ROUND" && round > 0)) ? "text-black bg-slate-200" : "text-transparent bg-transparent")
-          }>
-            The word was: {prevWord}
+            <div className={"flex text-base uppercase font-bold rounded-xl px-6 py-4 transition duration-150 "
+              + ((gameState === "ENDED" || (gameState === "PRE_ROUND" && round > 0)) ? "text-black bg-slate-200" : "text-transparent bg-transparent")
+            }>
+              The word was: {prevWord}
+            </div>
           </div>
 
           <Boards opponents={opponents} middle={
@@ -414,7 +438,8 @@ export default function Home({ params }: {
               />
             </div>}
           />
-
+        </div>
+        <div className="p-4">
           <Keyboard
             colors={keyColors}
             keyCallback={addChar}

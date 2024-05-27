@@ -3,11 +3,17 @@
 import Header from "@/app/game/[id]/Header";
 import MainCenter from "@/app/MainCenter";
 import RoundedBox from "@/app/RoundedBox";
-import { Event } from "@/util/types";
+import { Event, genRandomUsername } from "@/util/types";
 import { Button } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+
+type ListPlayer = {
+  username: string,
+  isMe: boolean,
+  isHost: boolean,
+}
 
 export default function Home({ params }: {
   params: {
@@ -20,7 +26,7 @@ export default function Home({ params }: {
 
   const [randomName, setRandomName] = useState("");
   const [username, setUsername] = useState("");
-  const [players, setPlayers] = useState<Array<string>>([]);
+  const [players, setPlayers] = useState<Array<ListPlayer>>([]);
   const [copied, setCopied] = useState(false);
   const [usernameLoading, setUsernameLoading] = useState(false);
   const [usernameSaved, setUsernameSaved] = useState(false);
@@ -30,44 +36,71 @@ export default function Home({ params }: {
   const [canJoin, setCanJoin] = useState(false);
 
   useEffect(() => {
-    fetchIsHost();
+    const asyncFunc = async () => {
+      const userId = getUserID();
+      let hostId = await fetchHost();
 
-    const userId = getUserID();
-    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
-    
-    eventSource.onmessage = (m) => {
-      const event: Event = JSON.parse(m.data);
-      switch (event.typ) {
-        case "CHANGE_PLAYERS":
-          setPlayers(event.players.map(p => p.username));
-          if (event.state !== "PRE_START") {
-            setCanJoin(true);
-          }
-          break;
-
-        case "START_GAME":
-          redirectToGame();
-          break;
+      let initUsername;
+      const name = genRandomUsername();
+      setRandomName(name);
+      const lsUsername = localStorage.getItem("username");
+      if (lsUsername) {
+        setUsername(lsUsername);
+        initUsername = lsUsername;
+      } else {
+        setUsername(name);
+        initUsername = name;
       }
+      await setDBUsername(initUsername);
+
+      const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
+      
+      eventSource.onmessage = (m) => {
+        const event: Event = JSON.parse(m.data);
+        switch (event.typ) {
+          case "CHANGE_PLAYERS":
+            const func = async () => {
+              hostId = await fetchHost();
+              setPlayers(event.players.map(p => {
+                return {
+                  username: p.username,
+                  isMe: p.userId === userId,
+                  isHost: p.userId === hostId,
+                }
+              }));
+              if (event.state !== "PRE_START") {
+                setCanJoin(true);
+              }
+            }
+            func();
+            break;
+
+          case "GAME_FULL":
+            const func2 = async () => {
+              hostId = await fetchHost();
+              setPlayers(event.players.map(p => {
+                return {
+                  username: p.username,
+                  isMe: p.userId === userId,
+                  isHost: p.userId === hostId,
+                }
+              }));
+              if (event.state !== "PRE_START") {
+                setCanJoin(true);
+              }
+            }
+            func2();
+            break;
+
+          case "START_GAME":
+            redirectToGame();
+            break;
+        }
+      };
+      return () => eventSource.close();
     };
-
-    const name = genRandomUsername();
-    setRandomName(name);
-
-    const lsUsername = localStorage.getItem("username");
-    if (lsUsername) {
-      setUsername(lsUsername);
-    } else {
-      setUsername(name);
-    }
-    return () => eventSource.close();
+    asyncFunc();
   }, []);
-
-  useEffect(() => {
-    if (username && firstNameSave) {
-      setDBUsername(username);
-    }
-  }, [username]);
 
   useEffect(() => {
     if (!copied) {
@@ -87,11 +120,14 @@ export default function Home({ params }: {
     }, 2000);
   }, [usernameSaved]);
 
-  const fetchIsHost = async () => {
-    const userId = getUserID();
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/game/${id}/host/${userId}`);
+  const fetchHost = async () => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/game/${id}/host`);
     const data = await res.json();
-    setIsHost(data.isHost);
+
+    const userId = getUserID();
+    setIsHost(userId === data.host);
+
+    return data.host;
   }
 
   const setDBUsername = async (username: string) => {
@@ -125,12 +161,6 @@ export default function Home({ params }: {
       localStorage.setItem("userId", userId);
     }
     return userId;
-  }
-
-  const genRandomUsername = () => {
-    return "user" + Math.floor(Math.random() * 10)
-        + Math.floor(Math.random() * 10)
-        + Math.floor(Math.random() * 10);
   }
 
   const copyGameLink = () => {
@@ -245,14 +275,18 @@ export default function Home({ params }: {
                   Players:
                 </p>
                 {[...Array(9)].map((_, i) =>
-                  <div key={i} className="flex border-2 border-slate-300
+                  <div key={i} className="flex items-center border-2 border-slate-300
                       rounded-lg w-full px-2 bg-slate-100">
                     <p className="w-6 font-bold text-slate-500">
                       {i + 1}.
                     </p>
-                    <p className="font-semibold text-black">
-                      {i < players.length ? players[i] : ""}
+                    <p className={"text-black" + ((i < players.length && players[i].isMe) ? " font-bold" : "")}>
+                      {i < players.length ? players[i].username : ""}
                     </p>
+                    {(i < players.length && players[i].isHost && <p className="text-blue-500
+                        rounded-lg uppercase ml-2 text-sm font-black">
+                      Host
+                    </p>)}
                   </div>
                 )}
               </div>

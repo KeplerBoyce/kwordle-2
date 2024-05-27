@@ -72,14 +72,14 @@ impl GameUsernamesRes {
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct IsHostRes {
-    pub is_host: bool,
+pub struct HostRes {
+    pub host: String,
 }
 
-impl IsHostRes {
-    pub fn create(is_host: bool) -> Self {
-        IsHostRes {
-            is_host,
+impl HostRes {
+    pub fn create(host: String) -> Self {
+        HostRes {
+            host,
         }
     }
 }

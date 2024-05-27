@@ -135,6 +135,12 @@ export type Event = ChangePlayersEvent | StartGameEvent | NewWordEvent |
                     GameFullEvent | TypingEvent | RoundStartEvent | RoundEndEvent |
                     GameEndEvent;
 
+export const genRandomUsername = () => {
+  return "user" + Math.floor(Math.random() * 10)
+      + Math.floor(Math.random() * 10)
+      + Math.floor(Math.random() * 10);
+}
+
 const answerList = new Set(`aback
 abase
 abate
