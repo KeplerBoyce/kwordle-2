@@ -35,7 +35,7 @@ export default function Home({ params }: {
   const [firstNameSave, setFirstNameSave] = useState(true);
   const [isHost, setIsHost] = useState(false);
   const [canJoin, setCanJoin] = useState(false);
-  const [rounds, setRounds] = useState(5);
+  const [rounds, setRounds] = useState(10);
   const [roundTime, setRoundTime] = useState(60);
   const [preRoundTime, setPreRoundTime] = useState(10);
   const [settingsOpen, setSettingsOpen] = useState(false);
