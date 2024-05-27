@@ -37,7 +37,7 @@ export default function Home({ params }: {
   const [canJoin, setCanJoin] = useState(false);
   const [rounds, setRounds] = useState(5);
   const [roundTime, setRoundTime] = useState(60);
-  const [preRoundTime, setPreRoundTime] = useState(5);
+  const [preRoundTime, setPreRoundTime] = useState(10);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
@@ -317,7 +317,7 @@ export default function Home({ params }: {
                   radius="lg"
                   color="primary"
                   onClick={() => setSettingsOpen(true)}
-                  className="uppercase font-bold text-sm h-10 p-3"
+                  className="uppercase font-bold text-base h-10 p-3"
                 >
                   Game settings
                 </Button>

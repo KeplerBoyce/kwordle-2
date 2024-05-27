@@ -82,7 +82,7 @@ export default function Settings(props: {
                   radius="lg"
                   color="primary"
                   onClick={() => setOpen(false)}
-                  className="uppercase font-bold text-sm h-10 p-3"
+                  className="uppercase font-bold text-base h-10 p-3"
                 >
                   Close settings
                 </Button>

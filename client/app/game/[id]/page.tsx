@@ -39,6 +39,7 @@ export default function Home({ params }: {
   const [showRoundScore, setShowRoundScore] = useState(false);
   const [username, setUsername] = useState("");
   const [round, setRound] = useState(0);
+  const [numRounds, setNumRounds] = useState(0);
   const [prevWord, setPrevWord] = useState("");
   const [results, setResults] = useState<{[userId: string]: Result}>({});
   const [showResults, setShowResults] = useState(false);
@@ -130,6 +131,7 @@ export default function Home({ params }: {
             }
             currRound = event.round;
             setRound(event.round);
+            setNumRounds(event.numRounds);
 
             if ((event.state === "PRE_ROUND" && event.round > 0) || event.state === "ENDED") {
               setPrevWord(currWord);
@@ -389,6 +391,9 @@ export default function Home({ params }: {
 
         <div className="h-full py-4 flex flex-col items-center justify-around">
           <div className="flex flex-col gap-4 items-center">
+            <p className="text-xl uppercase font-bold">
+              Round {round}/{numRounds}
+            </p>
             <Timer
               time={(round === 0 && gameState === "PRE_ROUND")
                 ? roundTime : ((gameState === "PRE_ROUND" || gameState === "ENDED")

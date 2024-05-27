@@ -1,3 +1,4 @@
+use log::debug;
 use parking_lot::Mutex;
 use actix_web::web::{Data, Json, Path};
 use actix_web::{HttpResponse, post};
@@ -35,7 +36,8 @@ pub async fn post(
             req_data.pre_round_time
         );
         db.lock().set_game_state(game_id.clone(), GameState::PreRound);
-        hourglass.lock().set_glass(game_id.clone(), game.pre_round_time);
+        let initial_sand = db.lock().get_game(game_id.clone()).unwrap().pre_round_time;
+        hourglass.lock().set_glass(game_id.clone(), initial_sand);
     } else {
         return Err(ServerErr::NotFound(format!("game {} not found", game_id)));
     }
