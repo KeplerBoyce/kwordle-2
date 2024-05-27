@@ -28,6 +28,12 @@ pub async fn post(
         if game.host_id != req_data.host_id {
             return Err(ServerErr::UnAuth(format!("user ID does not match host ID in database")));
         }
+        db.lock().set_game_settings(
+            game_id.clone(),
+            req_data.rounds,
+            req_data.round_time,
+            req_data.pre_round_time
+        );
         db.lock().set_game_state(game_id.clone(), GameState::PreRound);
         hourglass.lock().set_glass(game_id.clone(), game.pre_round_time);
     } else {

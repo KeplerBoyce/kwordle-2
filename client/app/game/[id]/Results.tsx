@@ -55,7 +55,7 @@ export default function Results(props: {
                 {results[userId].score}
               </p>
               <p className="w-36 px-2 py-1 font-bold text-center">
-                {results[userId].numGuesses.length > 0
+                {results[userId].numGuesses.filter((_, i) => results[userId].solves[i]).length > 0
                   ? (results[userId].numGuesses.filter((_, i) => results[userId].solves[i])
                     .reduce((a, b) => a + b) / results[userId].numGuesses.filter((_, i) =>
                       results[userId].solves[i]).length).toFixed(2)

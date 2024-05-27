@@ -28,6 +28,9 @@ pub struct CreateGameReq {
 #[serde(rename_all = "camelCase")]
 pub struct StartGameReq {
     pub host_id: String,
+    pub rounds: i32,
+    pub round_time: i32,
+    pub pre_round_time: i32,
 }
 
 #[derive(Deserialize, Serialize)]

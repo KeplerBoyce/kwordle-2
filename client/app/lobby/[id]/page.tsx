@@ -7,6 +7,7 @@ import { Event, genRandomUsername } from "@/util/types";
 import { Button } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Settings from "./Settings";
 
 
 type ListPlayer = {
@@ -34,6 +35,10 @@ export default function Home({ params }: {
   const [firstNameSave, setFirstNameSave] = useState(true);
   const [isHost, setIsHost] = useState(false);
   const [canJoin, setCanJoin] = useState(false);
+  const [rounds, setRounds] = useState(5);
+  const [roundTime, setRoundTime] = useState(60);
+  const [preRoundTime, setPreRoundTime] = useState(5);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     const asyncFunc = async () => {
@@ -187,7 +192,10 @@ export default function Home({ params }: {
       headers,
       body: JSON.stringify({
         hostId,
-      })
+        rounds,
+        roundTime: roundTime * 1000,
+        preRoundTime: preRoundTime * 1000,
+      }),
     });
   }
 
@@ -198,8 +206,20 @@ export default function Home({ params }: {
 
   return (
     <MainCenter>
+      <Settings
+        open={settingsOpen}
+        rounds={rounds}
+        roundTime={roundTime}
+        preRoundTime={preRoundTime}
+        setOpen={setSettingsOpen}
+        setRounds={setRounds}
+        setRoundTime={setRoundTime}
+        setPreRoundTime={setPreRoundTime}
+      />
       <div className="w-full h-screen flex flex-col items-center">
-        <Header />
+        <div className="w-full z-20">
+          <Header />
+        </div>
         
         <div className="flex-grow flex items-center">
           <RoundedBox className="py-12 mb-12">
@@ -291,19 +311,30 @@ export default function Home({ params }: {
                 )}
               </div>
 
-              <Button
-                size="lg"
-                radius="lg"
-                color="success"
-                disabled={!isHost && !canJoin}
-                isLoading={startLoading}
-                onClick={canJoin ? redirectToGame : startGame}
-                className={"w-full uppercase font-semibold text-2xl h-16"
-                  + ((isHost || canJoin) ? "" : " bg-slate-400")}
-              >
-                {startLoading ? "Starting" : (canJoin ? "Join" :
-                  (isHost ? "Start" : "Waiting for host"))}
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button
+                  size="lg"
+                  radius="lg"
+                  color="primary"
+                  onClick={() => setSettingsOpen(true)}
+                  className="uppercase font-bold text-sm h-10 p-3"
+                >
+                  Game settings
+                </Button>
+                <Button
+                  size="lg"
+                  radius="lg"
+                  color="success"
+                  disabled={!isHost && !canJoin}
+                  isLoading={startLoading}
+                  onClick={canJoin ? redirectToGame : startGame}
+                  className={"w-full uppercase font-semibold text-2xl h-16"
+                    + ((isHost || canJoin) ? "" : " bg-slate-400")}
+                >
+                  {startLoading ? "Starting" : (canJoin ? "Join" :
+                    (isHost ? "Start" : "Waiting for host"))}
+                </Button>
+              </div>
             </div>
           </RoundedBox>
         </div>

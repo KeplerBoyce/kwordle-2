@@ -152,6 +152,14 @@ impl Database {
         }
     }
 
+    pub fn set_game_settings(&mut self, game_id: String, rounds: i32, round_time: i32, pre_round_time: i32) {
+        if let Some(game) = self.games.get_mut(&game_id) {
+            game.num_rounds = rounds;
+            game.round_time = round_time;
+            game.pre_round_time = pre_round_time;
+        }
+    }
+
     pub fn get_game_results(&mut self, game_id: String) -> Option<HashMap<String, PlayerResult>> {
         if let Some(game) = self.games.get(&game_id) {
             Some(game.get_results())
