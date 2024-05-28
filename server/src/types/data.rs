@@ -26,8 +26,8 @@ impl Game {
             players: HashMap::new(),
             word: gen_answer(),
             round_time: 60000,
-            pre_round_time: 3000,
-            num_rounds: 3,
+            pre_round_time: 10000,
+            num_rounds: 10,
             round: 0,
             num_solved: 0,
         }

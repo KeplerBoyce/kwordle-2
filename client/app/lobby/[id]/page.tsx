@@ -94,6 +94,9 @@ export default function Home({ params }: {
               if (event.state !== "PRE_START") {
                 setCanJoin(true);
               }
+              setRounds(event.numRounds);
+              setRoundTime(event.roundTime / 1000);
+              setPreRoundTime(event.preRoundTime / 1000);
             }
             func2();
             break;
@@ -174,8 +177,8 @@ export default function Home({ params }: {
       headers,
       body: JSON.stringify({
         rounds,
-        roundTime,
-        preRoundTime,
+        roundTime: roundTime * 1000,
+        preRoundTime: preRoundTime * 1000,
       }),
     });
   }

@@ -20,6 +20,13 @@ pub async fn post(
     let game_id: String = path.into_inner();
     let req_data: SetSettingsReq = data.into_inner();
 
+    db.lock().set_game_settings(
+        game_id.clone(),
+        req_data.rounds,
+        req_data.round_time,
+        req_data.pre_round_time
+    );
+
     let event = Event::ChangeSettingsEvent(ChangeSettingsEvent::create(
         req_data.rounds,
         req_data.round_time,
