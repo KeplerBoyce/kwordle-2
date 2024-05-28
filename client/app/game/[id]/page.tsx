@@ -388,7 +388,7 @@ export default function Home({ params }: {
       <Results open={showResults} setOpen={setShowResults} results={results} myId={myId} />
       <div className="w-full h-screen flex flex-col items-center">
         <div className="w-full z-20">
-          <Header />
+          <Header gameId={id} />
         </div>
 
         <div className="h-full py-4 flex flex-col items-center justify-evenly">
