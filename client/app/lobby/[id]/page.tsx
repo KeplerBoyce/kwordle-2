@@ -41,6 +41,7 @@ export default function Home({ params }: {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
+    let eventSource: EventSource;
     const asyncFunc = async () => {
       const userId = getUserID();
       let hostId = await fetchHost();
@@ -58,7 +59,7 @@ export default function Home({ params }: {
       }
       await setDBUsername(initUsername);
 
-      const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
+      eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
       
       eventSource.onmessage = (m) => {
         const event: Event = JSON.parse(m.data);
@@ -102,9 +103,11 @@ export default function Home({ params }: {
             break;
         }
       };
-      return () => eventSource.close();
     };
     asyncFunc();
+    return () => {
+      eventSource.close();
+    };
   }, []);
 
   useEffect(() => {

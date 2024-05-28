@@ -46,6 +46,7 @@ export default function Home({ params }: {
   const [myId, setMyId] = useState("");
 
   useEffect(() => {
+    let eventSource: EventSource;
     const asyncFunc = async () => {
       const userId = getUserID();
 
@@ -71,7 +72,7 @@ export default function Home({ params }: {
         }),
       });
 
-      const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
+      eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
       let currWord = word;
       let currOpponents = opponents;
       let currScore = score;
@@ -203,9 +204,11 @@ export default function Home({ params }: {
             break;
         }
       };
-      return () => eventSource.close();
     };
     asyncFunc();
+    return () => {
+      eventSource.close();
+    };
   }, []);
 
   useEffect(() => {

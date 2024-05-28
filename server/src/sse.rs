@@ -136,6 +136,7 @@ impl Broadcaster {
         let (tx, rx) = channel(100);
         
         self.clients.insert(user_id, tx.clone());
+        debug!("added new client, {} in total", self.clients.len());
         (Client(rx), tx)
     }
 
