@@ -57,6 +57,7 @@ export default function Home({ params }: {
         setUsername(name);
         initUsername = name;
       }
+      localStorage.setItem("username", initUsername);
       await setDBUsername(initUsername);
 
       eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE}/events/${userId}`);
