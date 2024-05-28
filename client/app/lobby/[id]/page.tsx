@@ -103,8 +103,8 @@ export default function Home({ params }: {
 
           case "CHANGE_SETTINGS":
             setRounds(event.rounds);
-            setRoundTime(event.roundTime);
-            setPreRoundTime(event.preRoundTime);
+            setRoundTime(event.roundTime / 1000);
+            setPreRoundTime(event.preRoundTime / 1000);
             break;
 
           case "START_GAME":
