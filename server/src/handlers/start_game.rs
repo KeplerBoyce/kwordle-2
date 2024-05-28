@@ -1,4 +1,3 @@
-use log::debug;
 use parking_lot::Mutex;
 use actix_web::web::{Data, Json, Path};
 use actix_web::{HttpResponse, post};
