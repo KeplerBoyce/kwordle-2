@@ -7,8 +7,9 @@ import SmallBoardSimple from "./SmallBoardSimple";
 export default function Boards(props: {
   opponents: Opponent[],
   middle: ReactNode,
+  showLetters: boolean,
 }) {
-  const { opponents, middle } = props;
+  const { opponents, middle, showLetters } = props;
 
   switch (opponents.length) {
     case 0:
@@ -22,7 +23,7 @@ export default function Boards(props: {
       return (
         <div className="flex gap-8 items-center">
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={0} />
+            <SmallBoardSimple opponents={opponents} i={0} showLetters={showLetters} />
           </div>
           {middle}
           <div className="flex flex-col w-36" />
@@ -33,11 +34,11 @@ export default function Boards(props: {
       return (
         <div className="flex gap-8 items-center">
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={0} />
+            <SmallBoardSimple opponents={opponents} i={0} showLetters={showLetters} />
           </div>
           {middle}
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={1} />
+            <SmallBoardSimple opponents={opponents} i={1} showLetters={showLetters} />
           </div>
         </div>
       );
@@ -46,12 +47,12 @@ export default function Boards(props: {
       return (
         <div className="flex gap-8 items-center">
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={0} />
-            <SmallBoardSimple opponents={opponents} i={1} />
+            <SmallBoardSimple opponents={opponents} i={0} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={1} showLetters={showLetters} />
           </div>
           {middle}
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={2} />
+            <SmallBoardSimple opponents={opponents} i={2} showLetters={showLetters} />
           </div>
         </div>
       );
@@ -60,13 +61,13 @@ export default function Boards(props: {
       return (
         <div className="flex gap-8 items-center">
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={0} />
-            <SmallBoardSimple opponents={opponents} i={1} />
+            <SmallBoardSimple opponents={opponents} i={0} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={1} showLetters={showLetters} />
           </div>
           {middle}
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={2} />
-            <SmallBoardSimple opponents={opponents} i={3} />
+            <SmallBoardSimple opponents={opponents} i={2} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={3} showLetters={showLetters} />
           </div>
         </div>
       );
@@ -75,16 +76,16 @@ export default function Boards(props: {
       return (
         <div className="flex gap-8 items-center">
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={0} />
+            <SmallBoardSimple opponents={opponents} i={0} showLetters={showLetters} />
           </div>
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={1} />
-            <SmallBoardSimple opponents={opponents} i={2} />
+            <SmallBoardSimple opponents={opponents} i={1} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={2} showLetters={showLetters} />
           </div>
           {middle}
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={3} />
-            <SmallBoardSimple opponents={opponents} i={4} />
+            <SmallBoardSimple opponents={opponents} i={3} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={4} showLetters={showLetters} />
           </div>
           <div className="flex flex-col w-36" />
         </div>
@@ -94,19 +95,19 @@ export default function Boards(props: {
       return (
         <div className="flex gap-8 items-center">
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={0} />
+            <SmallBoardSimple opponents={opponents} i={0} showLetters={showLetters} />
           </div>
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={1} />
-            <SmallBoardSimple opponents={opponents} i={2} />
+            <SmallBoardSimple opponents={opponents} i={1} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={2} showLetters={showLetters} />
           </div>
           {middle}
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={3} />
-            <SmallBoardSimple opponents={opponents} i={4} />
+            <SmallBoardSimple opponents={opponents} i={3} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={4} showLetters={showLetters} />
           </div>
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={5} />
+            <SmallBoardSimple opponents={opponents} i={5} showLetters={showLetters} />
           </div>
         </div>
       );
@@ -115,20 +116,20 @@ export default function Boards(props: {
       return (
         <div className="flex gap-8 items-center">
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={0} />
-            <SmallBoardSimple opponents={opponents} i={1} />
+            <SmallBoardSimple opponents={opponents} i={0} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={1} showLetters={showLetters} />
           </div>
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={2} />
-            <SmallBoardSimple opponents={opponents} i={3} />
+            <SmallBoardSimple opponents={opponents} i={2} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={3} showLetters={showLetters} />
           </div>
           {middle}
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={4} />
-            <SmallBoardSimple opponents={opponents} i={5} />
+            <SmallBoardSimple opponents={opponents} i={4} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={5} showLetters={showLetters} />
           </div>
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={6} />
+            <SmallBoardSimple opponents={opponents} i={6} showLetters={showLetters} />
           </div>
         </div>
       );
@@ -137,21 +138,21 @@ export default function Boards(props: {
       return (
         <div className="flex gap-8 items-center">
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={0} />
-            <SmallBoardSimple opponents={opponents} i={1} />
+            <SmallBoardSimple opponents={opponents} i={0} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={1} showLetters={showLetters} />
           </div>
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={2} />
-            <SmallBoardSimple opponents={opponents} i={3} />
+            <SmallBoardSimple opponents={opponents} i={2} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={3} showLetters={showLetters} />
           </div>
           {middle}
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={4} />
-            <SmallBoardSimple opponents={opponents} i={5} />
+            <SmallBoardSimple opponents={opponents} i={4} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={5} showLetters={showLetters} />
           </div>
           <div className="flex flex-col gap-4 w-36">
-            <SmallBoardSimple opponents={opponents} i={6} />
-            <SmallBoardSimple opponents={opponents} i={7} />
+            <SmallBoardSimple opponents={opponents} i={6} showLetters={showLetters} />
+            <SmallBoardSimple opponents={opponents} i={7} showLetters={showLetters} />
           </div>
         </div>
       );

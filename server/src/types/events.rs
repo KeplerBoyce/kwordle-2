@@ -135,11 +135,11 @@ pub struct GameFullEvent {
 pub struct TypingEvent {
     pub typ: EventType,
     pub user_id: String,
-    pub typing: [bool; 5],
+    pub typing: [Option<char>; 5],
 }
 
 impl TypingEvent {
-    pub fn create(user_id: String, typing: [bool; 5]) -> Self {
+    pub fn create(user_id: String, typing: [Option<char>; 5]) -> Self {
         Self {
             typ: EventType::Typing,
             user_id,

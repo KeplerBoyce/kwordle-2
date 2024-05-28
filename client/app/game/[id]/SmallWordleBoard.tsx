@@ -1,4 +1,4 @@
-import { WordleColor } from "@/util/types";
+import { Char, WordleColor } from "@/util/types";
 import ColorBox from "./ColorBox";
 
 
@@ -7,9 +7,19 @@ export default function SmallWordleBoard(props: {
   colors: WordleColor[],
   username?: string,
   score: number,
-  typing: boolean[],
+  guesses: string[],
+  typing: (Char | null)[],
+  showLetters: boolean,
 }) {
-  const { active, colors, username, score, typing } = props;
+  const {
+    active,
+    colors,
+    username,
+    score,
+    guesses,
+    typing,
+    showLetters,
+  } = props;
 
   return (
     <div className={"flex flex-col gap-1 border-2 p-2 rounded-xl transition duration-250 "
@@ -28,8 +38,11 @@ export default function SmallWordleBoard(props: {
             {[...Array(5)].map((_, c) =>
               <ColorBox
                 key={c}
-                color={colors[r * 5 + c]}
-                typing={active && r * 5 === colors.length && typing[c]}
+                color={r >= guesses.length ? "white" : colors[r * 5 + c]}
+                letter={(active && r < guesses.length) ? guesses[r].charAt(c) as Char :
+                  ((active && r === guesses.length) ? typing[c] : null)
+                }
+                showLetter={showLetters}
               />
             )}
           </div>

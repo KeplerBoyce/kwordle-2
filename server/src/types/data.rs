@@ -75,7 +75,7 @@ pub struct Player {
     pub guesses: Vec<String>,
     pub score: i32,
     pub ready: bool,
-    pub typing: [bool; 5],
+    pub typing: [Option<char>; 5],
     pub results: PlayerResult,
 }
 
@@ -87,7 +87,7 @@ impl Player {
             guesses: Vec::new(),
             score: 0,
             ready: false,
-            typing: [false; 5],
+            typing: [None; 5],
             results: PlayerResult::new(username),
         }
     }

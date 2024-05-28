@@ -95,6 +95,7 @@ export default function Home({ params }: {
                   userId: p.userId,
                   username: p.username,
                   guessColors: guessesToColors(p.guesses, currWord),
+                  guesses: p.guesses,
                   score: p.score,
                   typing: p.typing,
                 };
@@ -146,6 +147,7 @@ export default function Home({ params }: {
                   userId: p.userId,
                   username: p.username,
                   guessColors: guessesToColors(p.guesses, currWord),
+                  guesses: p.guesses,
                   score: p.score,
                   typing: p.typing,
                 };
@@ -272,7 +274,7 @@ export default function Home({ params }: {
     });
   }
 
-  const sendTypingReq = async (typing: boolean[]) => {
+  const sendTypingReq = async (typing: (Char | null)[]) => {
     const userId = getUserID();
     const headers: HeadersInit = new Headers();
     headers.set("Content-Type", "application/json");
@@ -307,12 +309,13 @@ export default function Home({ params }: {
       return;
     }
 
-    const typing = [];
-    for (let i = 0; i <= col; i++) {
-      typing.push(true);
+    const typing: (Char | null)[] = [];
+    for (let i = 0; i < col; i++) {
+      typing.push(grid[row * 5 + i].char);
     }
+    typing.push(char);
     for (let i = col + 1; i < 5; i++) {
-      typing.push(false);
+      typing.push(null);
     }
     sendTypingReq(typing);
 
@@ -324,16 +327,16 @@ export default function Home({ params }: {
   }
 
   const handleBackspace = () => {
-    if (col <= 0) {
+    if (col <= 0 || solved || !canType || gameState !== "ROUND") {
       return;
     }
 
-    const typing = [];
+    const typing: (Char | null)[] = [];
     for (let i = 0; i < col - 1; i++) {
-      typing.push(true);
+      typing.push(grid[row * 5 + i].char);
     }
     for (let i = col - 1; i < 5; i++) {
-      typing.push(false);
+      typing.push(null);
     }
     sendTypingReq(typing);
 
@@ -343,7 +346,10 @@ export default function Home({ params }: {
   }
 
   const handleEnter = async () => {
-    sendTypingReq([false, false, false, false, false]);
+    if (solved || !canType || gameState !== "ROUND") {
+      return;
+    }
+    sendTypingReq([null, null, null, null, null]);
     if (col < 5) {
       clearRow();
       return;
@@ -441,37 +447,41 @@ export default function Home({ params }: {
             }
           </div>
 
-          <Boards opponents={opponents} middle={
-            <div className="flex flex-col gap-4">
-              <div className="flex px-1 items-end">
-                <p className="text-black font-semibold text-xl flex-grow">
-                  {username}
-                </p>
-                <div className="flex flex-col gap-1 items-start">
-                  <p className={"text-3xl font-bold -translate-x-4 " + (!showRoundScore
-                    ? "-translate-y-5 text-transparent transition duration-1000"
-                    : "translate-y-0 text-wordle-green")
-                  }>
-                    +{roundScore}
+          <Boards
+            opponents={opponents}
+            middle={
+              <div className="flex flex-col gap-4">
+                <div className="flex px-1 items-end">
+                  <p className="text-black font-semibold text-xl flex-grow">
+                    {username}
                   </p>
-                  <div className="flex items-end gap-1">
-                    <p className="font-bold uppercase text-3xl text-wordle-green">
-                      {score}
+                  <div className="flex flex-col gap-1 items-start">
+                    <p className={"text-3xl font-bold -translate-x-4 " + (!showRoundScore
+                      ? "-translate-y-5 text-transparent transition duration-1000"
+                      : "translate-y-0 text-wordle-green")
+                    }>
+                      +{roundScore}
                     </p>
-                    <p className="font-bold uppercase text-sm text-black pb-1">
-                      points
-                    </p>
+                    <div className="flex items-end gap-1">
+                      <p className="font-bold uppercase text-3xl text-wordle-green">
+                        {score}
+                      </p>
+                      <p className="font-bold uppercase text-sm text-black pb-1">
+                        points
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <WordleBoard
-                word={word}
-                row={row}
-                col={col}
-                grid={grid}
-              />
-            </div>}
+                <WordleBoard
+                  word={word}
+                  row={row}
+                  col={col}
+                  grid={grid}
+                />
+              </div>
+            }
+            showLetters={solved || row === 6 || gameState !== "ROUND"}
           />
         </div>
         <div className="p-4">

@@ -50,7 +50,7 @@ pub struct GuessReq {
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TypingReq {
-    pub typing: [bool; 5],
+    pub typing: [Option<char>; 5],
 }
 
 #[derive(Deserialize, Serialize)]

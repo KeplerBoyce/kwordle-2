@@ -71,8 +71,9 @@ export type Opponent = {
   userId: string,
   username: string,
   guessColors: WordleColor[],
+  guesses: string[],
   score: number,
-  typing: boolean[],
+  typing: (Char | null)[],
 }
 
 export type Player = {
@@ -81,7 +82,7 @@ export type Player = {
   guesses: string[],
   score: number,
   ready: boolean,
-  typing: boolean[],
+  typing: (Char | null)[],
 };
 
 export type Result = {
@@ -134,7 +135,7 @@ type GameFullEvent = {
 type TypingEvent = {
   typ: "TYPING",
   userId: string,
-  typing: boolean[],
+  typing: (Char | null)[],
 }
 
 type RoundStartEvent = {
