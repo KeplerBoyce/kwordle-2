@@ -98,6 +98,12 @@ export default function Home({ params }: {
             func2();
             break;
 
+          case "CHANGE_SETTINGS":
+            setRounds(event.rounds);
+            setRoundTime(event.roundTime);
+            setPreRoundTime(event.preRoundTime);
+            break;
+
           case "START_GAME":
             redirectToGame();
             break;
@@ -159,6 +165,21 @@ export default function Home({ params }: {
     }
   }
 
+  const sendSettingsReq = async () => {
+    const headers: HeadersInit = new Headers();
+    headers.set("Content-Type", "application/json");
+
+    await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/game/${id}/settings`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        rounds,
+        roundTime,
+        preRoundTime,
+      }),
+    });
+  }
+
   const getUserID = () => {
     let userId = localStorage.getItem("userId");
     if (!userId) {
@@ -211,6 +232,7 @@ export default function Home({ params }: {
     <MainCenter>
       <Settings
         open={settingsOpen}
+        isHost={isHost}
         rounds={rounds}
         roundTime={roundTime}
         preRoundTime={preRoundTime}
@@ -218,6 +240,7 @@ export default function Home({ params }: {
         setRounds={setRounds}
         setRoundTime={setRoundTime}
         setPreRoundTime={setPreRoundTime}
+        requestCallback={sendSettingsReq}
       />
       <div className="w-full h-screen flex flex-col items-center">
         <div className="w-full z-20">
@@ -322,7 +345,7 @@ export default function Home({ params }: {
                   onClick={() => setSettingsOpen(true)}
                   className="uppercase font-bold text-base h-10 p-3"
                 >
-                  Game settings
+                  {isHost ? "Edit game settings" : "View game settings"}
                 </Button>
                 <Button
                   size="lg"

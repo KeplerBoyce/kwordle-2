@@ -9,6 +9,7 @@ pub fn config_app(cfg: &mut web::ServiceConfig) {
         .service(guess::post)
         .service(get_host::get)
         .service(new_client::get)
+        .service(set_settings::post)
         .service(set_typing::post)
         .service(set_username::post)
         .service(start_game::post);

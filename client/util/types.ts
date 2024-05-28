@@ -94,6 +94,13 @@ export type Result = {
 
 export type GameState = "PRE_START" | "PRE_ROUND" | "ROUND" | "ENDED";
 
+type ChangeSettingsEvent = {
+  typ: "CHANGE_SETTINGS",
+  rounds: number,
+  roundTime: number,
+  preRoundTime: number,
+};
+
 type ChangePlayersEvent = {
   typ: "CHANGE_PLAYERS",
   players: Player[],
@@ -145,9 +152,9 @@ type GameEndEvent = {
   },
 }
 
-export type Event = ChangePlayersEvent | StartGameEvent | NewWordEvent |
-                    GameFullEvent | TypingEvent | RoundStartEvent | RoundEndEvent |
-                    GameEndEvent;
+export type Event = ChangeSettingsEvent | ChangePlayersEvent | StartGameEvent |
+                    NewWordEvent | GameFullEvent | TypingEvent | RoundStartEvent |
+                    RoundEndEvent | GameEndEvent;
 
 export const genRandomUsername = () => {
   return "user" + Math.floor(Math.random() * 10)

@@ -6,6 +6,7 @@ use super::data::{GameState, Player, PlayerResult};
 
 #[derive(Clone)]
 pub enum Event {
+    ChangeSettingsEvent(ChangeSettingsEvent),
     ChangePlayersEvent(ChangePlayersEvent),
     StartGameEvent(StartGameEvent),
     NewWordEvent(NewWordEvent),
@@ -19,6 +20,7 @@ pub enum Event {
 impl Event {
     pub fn to_string(&self) -> String {
         match self {
+            Event::ChangeSettingsEvent(e) => serde_json::to_string(e).unwrap(),
             Event::ChangePlayersEvent(e) => serde_json::to_string(e).unwrap(),
             Event::StartGameEvent(e) => serde_json::to_string(e).unwrap(),
             Event::NewWordEvent(e) => serde_json::to_string(e).unwrap(),
@@ -34,6 +36,7 @@ impl Event {
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum EventType {
+    ChangeSettings,
     ChangePlayers,
     StartGame,
     NewWord,
@@ -42,6 +45,26 @@ pub enum EventType {
     RoundStart,
     RoundEnd,
     GameEnd,
+}
+
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChangeSettingsEvent {
+    pub typ: EventType,
+    pub rounds: i32,
+    pub round_time: i32,
+    pub pre_round_time: i32,
+}
+
+impl ChangeSettingsEvent {
+    pub fn create(rounds: i32, round_time: i32, pre_round_time: i32) -> Self {
+        Self {
+            typ: EventType::ChangeSettings,
+            rounds,
+            round_time,
+            pre_round_time,
+        }
+    }
 }
 
 #[derive(Clone, Deserialize, Serialize)]
