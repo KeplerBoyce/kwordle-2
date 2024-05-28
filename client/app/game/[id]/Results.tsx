@@ -63,12 +63,12 @@ export default function Results(props: {
               </p>
               <div className="w-min flex divide-x-3 divide-slate-200">
                 {results[userId].numGuesses.map((_, i) =>
-                  <div className="w-16 flex gap-1 items-center">
+                  <div key={i} className="w-16 flex gap-1 items-center">
                     {(results[userId].solves[i] === false)
                       ? <p className="w-full text-red-500 text-center px-2 py-1 font-bold">
                         —
                       </p>
-                      : <p key={i} className={"w-full text-center px-2 py-1 "
+                      : <p className={"w-full text-center px-2 py-1 "
                         + (results[userId].ranks[i] === 1 ? "text-amber-400 font-bold"
                         : (results[userId].ranks[i] === 2 ? "text-gray-400 font-bold"
                         : (results[userId].ranks[i] === 3 ? "text-amber-700 font-bold" : "text-slate-400")))
