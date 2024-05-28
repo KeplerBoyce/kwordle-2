@@ -10,6 +10,7 @@ import Timer from "./Timer";
 import Boards from "./Boards";
 import Header from "./Header";
 import Results from "./Results";
+import { Button } from "@nextui-org/react";
 
 
 export default function Home({ params }: {
@@ -239,14 +240,6 @@ export default function Home({ params }: {
     }
   }, [showRoundScore]);
 
-  useEffect(() => {
-    if (gameState === "ENDED") {
-      setTimeout(() => {
-        setShowResults(true);
-      }, 3000);
-    }
-  }, [gameState]);
-
   const getUserID = () => {
     let userId = localStorage.getItem("userId");
     if (!userId) {
@@ -386,13 +379,13 @@ export default function Home({ params }: {
 
   return (
     <MainCenter>
-      <Results active={showResults} results={results} myId={myId} />
+      <Results open={showResults} setOpen={setShowResults} results={results} myId={myId} />
       <div className="w-full h-screen flex flex-col items-center">
         <div className="w-full z-20">
           <Header />
         </div>
 
-        <div className="h-full py-4 flex flex-col items-center justify-around">
+        <div className="h-full py-4 flex flex-col items-center justify-evenly">
           <div className="flex flex-col gap-4 items-center">
             <p className="text-xl uppercase font-bold">
               Round {round}/{numRounds}
@@ -423,7 +416,7 @@ export default function Home({ params }: {
                     {Math.ceil(preTime / 1000)}
                   </p>
                 </> : <p className="font-bold">
-                  {gameState === "ENDED" ? "Results will appear soon..." : "Type your guesses!"}
+                  {gameState === "ENDED" ? "Click the button to view results!" : "Type your guesses!"}
                 </p>}
             </div>
 
@@ -432,6 +425,20 @@ export default function Home({ params }: {
             }>
               The word was: {prevWord}
             </div>
+          </div>
+
+          <div className="h-12 flex items-center">
+            {gameState === "ENDED" &&
+              <Button
+                size="lg"
+                radius="lg"
+                color="primary"
+                onClick={() => setShowResults(true)}
+                className="uppercase font-bold text-base h-10 p-6"
+              >
+                View results
+              </Button>
+            }
           </div>
 
           <Boards opponents={opponents} middle={
