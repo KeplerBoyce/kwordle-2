@@ -38,11 +38,15 @@ impl Database {
 
             if let Some(game_id) = game_id_option {
                 let players = self.get_game_players(game_id.clone());
-                let state = self.games.get(&game_id).unwrap().state;
-                let event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players, state));
-
-                for player in self.get_game_players(game_id.clone()) {
-                    broadcaster.lock().send_single(player.user_id, event.clone());
+                if players.len() == 0 {
+                    self.clear_game(game_id);
+                } else {
+                    let state = self.games.get(&game_id).unwrap().state;
+                    let event = Event::ChangePlayersEvent(ChangePlayersEvent::create(players, state));
+    
+                    for player in self.get_game_players(game_id.clone()) {
+                        broadcaster.lock().send_single(player.user_id, event.clone());
+                    }
                 }
             }
         }
